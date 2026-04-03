@@ -383,13 +383,40 @@
     
 
     
+      <div class="col-lg-7 mx-auto nopadding-x-md">
+        <div class="container custom mx-auto">
+          <script type="text/javascript">
+  function show_runtime() {
+    window.setTimeout("show_runtime()", 1000);
+    let X = new Date("4/1/2026 00:00:00"); // 你的建站日期
+    let Y = new Date();
+    let T = (Y.getTime() - X.getTime());
+    let M = 24 * 60 * 60 * 1000;
+    let a = T / M;
+    let A = Math.floor(a);
+    let b = (a - A) * 24;
+    let B = Math.floor(b);
+    let c = (b - B) * 60;
+    let C = Math.floor(c);
+    let D = Math.floor((c - C) * 60);
+    let span = document.getElementById("runtime_span");
+    if(span) {
+      span.innerHTML = "本站已运行: " + A + " 天 " + B + " 小时 " + C + " 分 " + D + " 秒 ";
+    }
+  }
+  show_runtime();
+</script>
+
+        </div>
+      </div>
+    
   </main>
 
   <footer>
     <div class="footer-inner">
   
     <div class="footer-content">
-       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+      <span>Copyright © 2026 kiooo808</span><br><span id="runtime_span"></span>
     </div>
   
   
