@@ -19,15 +19,15 @@
   <meta name="author" content="kiooo808">
   <meta name="keywords" content="">
   
-    <meta name="description" content="更新一些个人日常动态，记录学习思考轨迹。 反思过去，立足现在，展望未来。 过去无法改变，未来无法预测。但是站在过去，现在就是未来。站在未来，现在就是过去。记录当下，就是借未来之力改变过去吧！">
+    <meta name="description" content="正在连接 GitHub 卫星，请稍候...          (function() {     function start() {       if (typeof GitHubCalendar &#x3D;&#x3D;&#x3D; &#39;function&#39;) {         new GitHubCalendar(&quot;#github-calendar&quot;, &quot;kiooo808&quot;, {           respon">
 <meta property="og:type" content="website">
 <meta property="og:title" content="about">
 <meta property="og:url" content="http://example.com/about/index.html">
 <meta property="og:site_name" content="kiooo808">
-<meta property="og:description" content="更新一些个人日常动态，记录学习思考轨迹。 反思过去，立足现在，展望未来。 过去无法改变，未来无法预测。但是站在过去，现在就是未来。站在未来，现在就是过去。记录当下，就是借未来之力改变过去吧！">
+<meta property="og:description" content="正在连接 GitHub 卫星，请稍候...          (function() {     function start() {       if (typeof GitHubCalendar &#x3D;&#x3D;&#x3D; &#39;function&#39;) {         new GitHubCalendar(&quot;#github-calendar&quot;, &quot;kiooo808&quot;, {           respon">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2026-04-03T12:02:12.000Z">
-<meta property="article:modified_time" content="2026-04-03T14:30:56.843Z">
+<meta property="article:modified_time" content="2026-04-03T14:59:56.328Z">
 <meta property="article:author" content="kiooo808">
 <meta name="twitter:card" content="summary_large_image">
   
@@ -326,7 +326,34 @@
                 
 
 <article class="page-content">
-  <div id="githubcalendar" class="githubcalendar"></div>
+  <div id="github-calendar" class="calendar" style="width:100%; min-height: 200px; margin: 20px 0; border: 1px dashed #ddd;">
+    <div style="text-align:center; padding: 50px;">正在连接 GitHub 卫星，请稍候...</div>
+</div>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/github-calendar/2.3.2/github-calendar-responsive.css">
+
+<script src="https://cdn.bootcdn.net/ajax/libs/github-calendar/2.3.2/github-calendar.min.js"></script>
+
+<script>
+  (function() {
+    function start() {
+      if (typeof GitHubCalendar === 'function') {
+        new GitHubCalendar("#github-calendar", "kiooo808", {
+          responsive: true,
+          tooltips: true
+        }).then(function() {
+          console.log("GitHub日历加载成功");
+        }).catch(function(e) {
+          // 如果还是不行，可能是API频率限制，这里打印错误到控制台
+          console.error("加载出错了: ", e);
+        });
+      } else {
+        setTimeout(start, 500);
+      }
+    }
+    start();
+  })();
+</script>
 
 <p><strong>更新一些个人日常动态，记录学习思考轨迹。</strong></p>
 <p><strong>反思过去，立足现在，展望未来。</strong></p>
