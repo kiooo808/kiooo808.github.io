@@ -1,0 +1,24 @@
+/* 1. 基础重置：消除所有背景色冲突 */
+.gist .blob-code,
+.gist .blob-num,
+.gist table,
+.gist table tr,
+.gist table td {
+    background-color: transparent !important;
+}
+
+/* 2. 深度适配：针对 Fluid 暗黑模式强制文字变亮 */
+[data-user-color-scheme='dark'] .gist {
+    /* 核心逻辑：利用滤镜将黑色文字反转为白色，同时微调色相防止过载 */
+    filter: invert(0.9) hue-rotate(180deg);
+}
+
+/* 3. 如果滤镜导致代码高亮颜色变畸形，请改用以下颜色覆盖逻辑 */
+/*
+[data-user-color-scheme='dark'] .gist .blob-code,
+[data-user-color-scheme='dark'] .gist .blob-num {
+    color: #adbac7 !important; 
+}
+[data-user-color-scheme='dark'] .gist .pl-s { color: #96d0ff !important; } 
+[data-user-color-scheme='dark'] .gist .pl-k { color: #da70d6 !important; }
+*/

@@ -4,6 +4,33 @@
   
   
   <entry>
+    <title>if-elseif语句数据转换等级</title>
+    <link href="/2026/04/10/%E5%AD%A6%E6%A0%A1%E8%AF%BE%E7%A8%8B/c%E8%AF%AD%E8%A8%80%E5%AD%A6%E4%B9%A0%E4%B8%8E%E5%BA%94%E7%94%A8/if-elseif%E8%AF%AD%E5%8F%A5%E6%95%B0%E6%8D%AE%E8%BD%AC%E6%8D%A2%E7%AD%89%E7%BA%A7/"/>
+    <url>/2026/04/10/%E5%AD%A6%E6%A0%A1%E8%AF%BE%E7%A8%8B/c%E8%AF%AD%E8%A8%80%E5%AD%A6%E4%B9%A0%E4%B8%8E%E5%BA%94%E7%94%A8/if-elseif%E8%AF%AD%E5%8F%A5%E6%95%B0%E6%8D%AE%E8%BD%AC%E6%8D%A2%E7%AD%89%E7%BA%A7/</url>
+    
+    <content type="html"><![CDATA[<p>提示：<br>1.本程序在 Visual Studio 环境下运行。若编译器报错 C4996（针对 scanf），请在“项目属性 -&gt; C&#x2F;C++ -&gt; 预处理器”中添加 _CRT_SECURE_NO_WARNINGS 宏定义。<br>2.程序相较于课程要求新增逻辑校验，输入的成绩必须在 0-100 之间，否则将提示错误。<br>3.代码严格遵循 ISO C 标准，使用 int main() 作为程序入口，所以以“return 0;”结尾。但是教材中使用void main()，可使用“return 0;”结尾或直接忽略不写。</p> <script src="https://gist.github.com/kiooo808/6a1a03a2964a38104d9dd56029bf7c45.js"></script>]]></content>
+    
+    
+    <categories>
+      
+      <category>学校课程</category>
+      
+      <category>c语言学习与应用</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>专业课</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>day-4</title>
     <link href="/2026/04/09/%E8%AF%81%E4%B9%A6%E8%80%83%E8%AF%95/%E8%8B%B1%E8%AF%AD%E5%9B%9B%E7%BA%A7/day-4/"/>
     <url>/2026/04/09/%E8%AF%81%E4%B9%A6%E8%80%83%E8%AF%95/%E8%8B%B1%E8%AF%AD%E5%9B%9B%E7%BA%A7/day-4/</url>
@@ -77,130 +104,6 @@
     <tags>
       
       <tag>英语四级</tag>
-      
-    </tags>
-    
-  </entry>
-  
-  
-  
-  <entry>
-    <title>2026年电视剧观影记录</title>
-    <link href="/2026/04/05/%E6%97%A5%E5%B8%B8%E5%A8%B1%E4%B9%90/%E5%BD%B1%E9%9F%B3%E4%BD%9C%E5%93%81/2026%E5%B9%B4/2026%E5%B9%B4%E7%94%B5%E8%A7%86%E5%89%A7%E8%A7%82%E5%BD%B1%E8%AE%B0%E5%BD%95/"/>
-    <url>/2026/04/05/%E6%97%A5%E5%B8%B8%E5%A8%B1%E4%B9%90/%E5%BD%B1%E9%9F%B3%E4%BD%9C%E5%93%81/2026%E5%B9%B4/2026%E5%B9%B4%E7%94%B5%E8%A7%86%E5%89%A7%E8%A7%82%E5%BD%B1%E8%AE%B0%E5%BD%95/</url>
-    
-    <content type="html"><![CDATA[<p>暂无，等待kiooo808在空闲时间观看一些吧！话说如果能向我推荐一些的话我会不胜感激的！</p>]]></content>
-    
-    
-    <categories>
-      
-      <category>日常娱乐</category>
-      
-      <category>影音作品</category>
-      
-      <category>2026年</category>
-      
-      <category>电视剧观影记录</category>
-      
-    </categories>
-    
-    
-    <tags>
-      
-      <tag>电视剧</tag>
-      
-    </tags>
-    
-  </entry>
-  
-  
-  
-  <entry>
-    <title>2026年电影观影记录</title>
-    <link href="/2026/04/05/%E6%97%A5%E5%B8%B8%E5%A8%B1%E4%B9%90/%E5%BD%B1%E9%9F%B3%E4%BD%9C%E5%93%81/2026%E5%B9%B4/2026%E5%B9%B4%E7%94%B5%E5%BD%B1%E8%A7%82%E5%BD%B1%E8%AE%B0%E5%BD%95/"/>
-    <url>/2026/04/05/%E6%97%A5%E5%B8%B8%E5%A8%B1%E4%B9%90/%E5%BD%B1%E9%9F%B3%E4%BD%9C%E5%93%81/2026%E5%B9%B4/2026%E5%B9%B4%E7%94%B5%E5%BD%B1%E8%A7%82%E5%BD%B1%E8%AE%B0%E5%BD%95/</url>
-    
-    <content type="html"><![CDATA[<p>暂无，等待kiooo808在空闲时间观看一些吧！话说如果能向我推荐一些的话我会不胜感激的！</p>]]></content>
-    
-    
-    <categories>
-      
-      <category>日常娱乐</category>
-      
-      <category>影音作品</category>
-      
-      <category>2026年</category>
-      
-      <category>动漫观影记录</category>
-      
-    </categories>
-    
-    
-    <tags>
-      
-      <tag>电影</tag>
-      
-    </tags>
-    
-  </entry>
-  
-  
-  
-  <entry>
-    <title>2026年喜爱的音乐</title>
-    <link href="/2026/04/05/%E6%97%A5%E5%B8%B8%E5%A8%B1%E4%B9%90/%E5%BD%B1%E9%9F%B3%E4%BD%9C%E5%93%81/2026%E5%B9%B4/2026%E5%B9%B4%E5%96%9C%E7%88%B1%E9%9F%B3%E4%B9%90/"/>
-    <url>/2026/04/05/%E6%97%A5%E5%B8%B8%E5%A8%B1%E4%B9%90/%E5%BD%B1%E9%9F%B3%E4%BD%9C%E5%93%81/2026%E5%B9%B4/2026%E5%B9%B4%E5%96%9C%E7%88%B1%E9%9F%B3%E4%B9%90/</url>
-    
-    <content type="html"><![CDATA[<p>没关系 -容祖儿🎶<br>我去本人觉得这首歌特别治愈解压好吧。在面临压力或者感到不安的时候，它可以让人内心重归平静。</p>]]></content>
-    
-    
-    <categories>
-      
-      <category>日常娱乐</category>
-      
-      <category>影音作品</category>
-      
-      <category>2026年</category>
-      
-      <category>喜爱的音乐</category>
-      
-    </categories>
-    
-    
-    <tags>
-      
-      <tag>音乐</tag>
-      
-    </tags>
-    
-  </entry>
-  
-  
-  
-  <entry>
-    <title>2026年动漫观影记录</title>
-    <link href="/2026/04/05/%E6%97%A5%E5%B8%B8%E5%A8%B1%E4%B9%90/%E5%BD%B1%E9%9F%B3%E4%BD%9C%E5%93%81/2026%E5%B9%B4/2026%E5%B9%B4%E5%8A%A8%E6%BC%AB%E8%A7%82%E5%BD%B1%E8%AE%B0%E5%BD%95/"/>
-    <url>/2026/04/05/%E6%97%A5%E5%B8%B8%E5%A8%B1%E4%B9%90/%E5%BD%B1%E9%9F%B3%E4%BD%9C%E5%93%81/2026%E5%B9%B4/2026%E5%B9%B4%E5%8A%A8%E6%BC%AB%E8%A7%82%E5%BD%B1%E8%AE%B0%E5%BD%95/</url>
-    
-    <content type="html"><![CDATA[<p><strong>四月</strong><br>1.如果能写小说就好了<br>部分情节很鬼畜搞笑就是了。螃蟹公卡哇伊。</p><p>2.正相反的你我<br>甜度爆表！！！没有保持嘴角不上扬的义务！</p><p>3.一起一起这里那里<br>甜呀甜呀ovo</p><p>4.关于完全听不懂老公在说什么的事系列<br>暂未看完qwq</p><p>5.幸运星<br>暂未看完qwq</p>]]></content>
-    
-    
-    <categories>
-      
-      <category>日常娱乐</category>
-      
-      <category>影音作品</category>
-      
-      <category>2026年</category>
-      
-      <category>动漫观影记录</category>
-      
-    </categories>
-    
-    
-    <tags>
-      
-      <tag>动漫</tag>
       
     </tags>
     
@@ -315,168 +218,6 @@
     <tags>
       
       <tag>性格分析</tag>
-      
-    </tags>
-    
-  </entry>
-  
-  
-  
-  <entry>
-    <title>信息技术</title>
-    <link href="/2026/04/03/%E5%AD%A6%E6%A0%A1%E8%AF%BE%E7%A8%8B/%E4%BF%A1%E6%81%AF%E6%8A%80%E6%9C%AF/%E4%BF%A1%E6%81%AF%E6%8A%80%E6%9C%AF/"/>
-    <url>/2026/04/03/%E5%AD%A6%E6%A0%A1%E8%AF%BE%E7%A8%8B/%E4%BF%A1%E6%81%AF%E6%8A%80%E6%9C%AF/%E4%BF%A1%E6%81%AF%E6%8A%80%E6%9C%AF/</url>
-    
-    <content type="html"><![CDATA[<p>此项课程为大一上的课程，现已结课。仅以复习为目的整理发布。如有侵权，请联系删除。</p>]]></content>
-    
-    
-    <categories>
-      
-      <category>学校课程</category>
-      
-      <category>信息技术</category>
-      
-    </categories>
-    
-    
-    <tags>
-      
-      <tag>专业课</tag>
-      
-    </tags>
-    
-  </entry>
-  
-  
-  
-  <entry>
-    <title>机械制图</title>
-    <link href="/2026/04/03/%E5%AD%A6%E6%A0%A1%E8%AF%BE%E7%A8%8B/%E6%9C%BA%E6%A2%B0%E5%88%B6%E5%9B%BE/%E6%9C%BA%E6%A2%B0%E5%88%B6%E5%9B%BE/"/>
-    <url>/2026/04/03/%E5%AD%A6%E6%A0%A1%E8%AF%BE%E7%A8%8B/%E6%9C%BA%E6%A2%B0%E5%88%B6%E5%9B%BE/%E6%9C%BA%E6%A2%B0%E5%88%B6%E5%9B%BE/</url>
-    
-    <content type="html"><![CDATA[<p>此项课程为大一上的课程，现已结课。仅以复习为目的整理发布。如有侵权，请联系删除。</p>]]></content>
-    
-    
-    <categories>
-      
-      <category>学校课程</category>
-      
-      <category>机械制图</category>
-      
-    </categories>
-    
-    
-    <tags>
-      
-      <tag>专业课</tag>
-      
-    </tags>
-    
-  </entry>
-  
-  
-  
-  <entry>
-    <title>电气控制技术</title>
-    <link href="/2026/04/03/%E5%AD%A6%E6%A0%A1%E8%AF%BE%E7%A8%8B/%E7%94%B5%E6%B0%94%E6%8E%A7%E5%88%B6%E6%8A%80%E6%9C%AF/%E7%94%B5%E6%B0%94%E6%8E%A7%E5%88%B6%E6%8A%80%E6%9C%AF/"/>
-    <url>/2026/04/03/%E5%AD%A6%E6%A0%A1%E8%AF%BE%E7%A8%8B/%E7%94%B5%E6%B0%94%E6%8E%A7%E5%88%B6%E6%8A%80%E6%9C%AF/%E7%94%B5%E6%B0%94%E6%8E%A7%E5%88%B6%E6%8A%80%E6%9C%AF/</url>
-    
-    <content type="html"><![CDATA[<p>此项课程为大一下的课程，仅以复习为目的整理发布。如有侵权，请联系删除。</p>]]></content>
-    
-    
-    <categories>
-      
-      <category>学校课程</category>
-      
-      <category>电气控制技术</category>
-      
-    </categories>
-    
-    
-    <tags>
-      
-      <tag>专业课</tag>
-      
-    </tags>
-    
-  </entry>
-  
-  
-  
-  <entry>
-    <title>电机及拖动基础</title>
-    <link href="/2026/04/03/%E5%AD%A6%E6%A0%A1%E8%AF%BE%E7%A8%8B/%E7%94%B5%E6%9C%BA%E5%8F%8A%E6%8B%96%E5%8A%A8%E5%9F%BA%E7%A1%80/%E7%94%B5%E6%9C%BA%E5%8F%8A%E6%8B%96%E5%8A%A8%E5%9F%BA%E7%A1%80/"/>
-    <url>/2026/04/03/%E5%AD%A6%E6%A0%A1%E8%AF%BE%E7%A8%8B/%E7%94%B5%E6%9C%BA%E5%8F%8A%E6%8B%96%E5%8A%A8%E5%9F%BA%E7%A1%80/%E7%94%B5%E6%9C%BA%E5%8F%8A%E6%8B%96%E5%8A%A8%E5%9F%BA%E7%A1%80/</url>
-    
-    <content type="html"><![CDATA[<p>此项课程为大一下的课程，仅以复习为目的整理发布。如有侵权，请联系删除。</p>]]></content>
-    
-    
-    <categories>
-      
-      <category>学校课程</category>
-      
-      <category>电机及拖动基础</category>
-      
-    </categories>
-    
-    
-    <tags>
-      
-      <tag>专业课</tag>
-      
-    </tags>
-    
-  </entry>
-  
-  
-  
-  <entry>
-    <title>电子技术</title>
-    <link href="/2026/04/03/%E5%AD%A6%E6%A0%A1%E8%AF%BE%E7%A8%8B/%E7%94%B5%E5%AD%90%E6%8A%80%E6%9C%AF/%E7%94%B5%E5%AD%90%E6%8A%80%E6%9C%AF/"/>
-    <url>/2026/04/03/%E5%AD%A6%E6%A0%A1%E8%AF%BE%E7%A8%8B/%E7%94%B5%E5%AD%90%E6%8A%80%E6%9C%AF/%E7%94%B5%E5%AD%90%E6%8A%80%E6%9C%AF/</url>
-    
-    <content type="html"><![CDATA[<p>此项课程为大一下的课程，仅以复习为目的整理发布。如有侵权，请联系删除。</p>]]></content>
-    
-    
-    <categories>
-      
-      <category>学校课程</category>
-      
-      <category>电子技术</category>
-      
-    </categories>
-    
-    
-    <tags>
-      
-      <tag>专业课</tag>
-      
-    </tags>
-    
-  </entry>
-  
-  
-  
-  <entry>
-    <title>电路基础</title>
-    <link href="/2026/04/03/%E5%AD%A6%E6%A0%A1%E8%AF%BE%E7%A8%8B/%E7%94%B5%E8%B7%AF%E5%9F%BA%E7%A1%80/%E7%94%B5%E8%B7%AF%E5%9F%BA%E7%A1%80/"/>
-    <url>/2026/04/03/%E5%AD%A6%E6%A0%A1%E8%AF%BE%E7%A8%8B/%E7%94%B5%E8%B7%AF%E5%9F%BA%E7%A1%80/%E7%94%B5%E8%B7%AF%E5%9F%BA%E7%A1%80/</url>
-    
-    <content type="html"><![CDATA[<p>此项课程为大一上的课程，现已结课。仅以复习为目的整理发布。如有侵权，请联系删除。</p>]]></content>
-    
-    
-    <categories>
-      
-      <category>学校课程</category>
-      
-      <category>电路基础</category>
-      
-    </categories>
-    
-    
-    <tags>
-      
-      <tag>专业课</tag>
       
     </tags>
     
