@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Learner Pro - Logic Refined</title>
+    <style>
+        :root {
+            --bg-color: #e0e5ec;
+            --text-color: #44474a;
+            --shadow-light: #ffffff;
+            --shadow-dark: #a3b1c6;
+            --accent-color: #6d5dfc;
+            --danger-color: #ff6b6b;
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 统一所有按钮的文字颜色逻辑 */
+        .lvl-btn, .btn, .nav-item {
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            transition: var(--transition);
+        }
+
+        body.dark-mode {
+            --bg-color: #2d3436;
+            --text-color: #dfe6e9;
+            --shadow-light: #3d4446;
+            --shadow-dark: #1e2223;
+            --accent-color: #a29bfe;
+            --danger-color: #ff8e8e;
+        }
+
+        .theme-switch {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 3000;
+            font-size: 20px;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+        }
+
+        .profile-header {
+            padding: 30px 20px;
+            margin-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .profile-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            margin-top: 35px;
+            width: 100%;
+        }
+
+        .profile-actions .lvl-btn {
+            width: 85%;
+            max-width: 320px;
+            padding: 14px;
+            font-weight: 600;
+        }
+
+        .neu-flat {
+            background: var(--bg-color);
+            box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
+            border-radius: 20px; transition: var(--transition);
+        }
+
+        .neu-pressed {
+            background: var(--bg-color);
+            box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+            border-radius: 20px; transition: var(--transition);
+        }
+
+        #loginOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color); z-index: 2000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+
+        .app-container { flex: 1; padding: 25px; overflow-y: auto; position: relative; }
+        .page { display: none; opacity: 0; transform: translateY(10px); transition: var(--transition); }
+        .page.active { display: block; opacity: 1; transform: translateY(0); }
+
+        h1 { text-align: center; font-size: 1.1rem; margin-bottom: 25px; font-weight: 600; padding: 0 60px; }
+
+        .search-area { position: sticky; top: 0; background: var(--bg-color); padding-bottom: 15px; z-index: 10; display: flex; gap: 12px; }
+        .search-box { padding: 14px 22px; border: none; flex: 1; outline: none; border-radius: 25px; }
+        .search-btn { width: 50px; height: 50px; border-radius: 50%; border: none; cursor: pointer; flex-shrink: 0; }
+
+        .word-item {
+            padding: 15px 22px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 15px;
+            background: var(--bg-color);
+            box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
+            transition: var(--transition);
+        }
+
+        /* 1. 内嵌词典容器样式修改点 */
+        #dictWrapper {
+            display: none;
+            margin-top: 20px;
+            border-radius: 20px;
+            overflow: hidden;
+            background: var(--bg-color);
+            box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
+        }
+        
+        .dict-header {
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--accent-color);
+            color: white;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .nav-bar {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 75px; 
+            display: flex; justify-content: space-around; align-items: center; 
+            background: var(--bg-color); box-shadow: 0 -8px 15px var(--shadow-dark); 
+            border-radius: 25px 25px 0 0; z-index: 1000;
+        }
+        
+        .nav-item { padding: 10px 18px; font-size: 12px; font-weight: bold; color: #888; cursor: pointer; transition: var(--transition); }
+        .nav-item.active { color: var(--accent-color); box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light); border-radius: 12px; }
+
+        #toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); padding: 10px 20px; border-radius: 20px; font-size: 13px; z-index: 3000; opacity: 0; transition: 0.3s; pointer-events: none; }
+        #toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <div id="loginOverlay">
+        <div class="theme-switch neu-flat" onclick="toggleTheme()" id="themeBtn">🌓</div>
+        <div class="neu-flat" style="padding: 40px; text-align: center; width: 280px;">
+            <div class="neu-pressed" style="width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">📖</div>
+            <h2 style="font-size: 1.2rem; margin-bottom: 20px;">欢迎回来</h2>
+            <input type="text" id="username" class="search-box neu-pressed" placeholder="输入用户名..." style="width: 80%; margin-bottom: 20px;">
+            <button onclick="login()" class="lvl-btn neu-flat" style="width: 100%; padding: 15px; font-weight: bold; color: var(--accent-color);">进入网页</button>
+        </div>
+    </div>
+
+    <div id="toast" class="neu-flat">消息提示</div>
+
+    <div class="app-container">
+        <div id="page1" class="page active">
+            <h1>快速查询</h1>
+            <div class="search-area">
+                <input type="text" id="searchInput" class="search-box neu-pressed" placeholder="输入单词...">
+                <button onclick="doSearch()" class="search-btn neu-flat">🔍</button>
+            </div>
+            
+            <div id="dictWrapper">
+                <div class="dict-header">
+                    <span>在线释义 (有道)</span>
+                    <span onclick="closeDict()" style="cursor:pointer">✕ 关闭</span>
+                </div>
+                <iframe id="dictFrame" src="" style="width: 100%; height: 450px; border: none; background: white;"></iframe>
+            </div>
+
+            <div id="localRes" class="result-card neu-flat" style="padding: 25px; margin-top: 10px;">
+                <h2 id="resWord" style="margin:0; color:var(--accent-color)">Ready</h2>
+                <p id="resMeaning" style="margin-top:12px; font-size: 14px;">等待查询...</p>
+            </div>
+        </div>
+
+        <div id="page2" class="page">
+            <h1>我的词库</h1>
+            <div class="list-card neu-flat">
+                <p style="font-size:12px; margin-bottom:15px; font-weight:bold;">今日新增 (<span id="todayCount">0</span>)</p>
+                <div id="todayList"></div>
+            </div>
+            <div class="list-card neu-flat">
+                <p style="font-size:12px; margin-bottom:15px; font-weight:bold;">所有记录 (<span id="allCount">0</span>)</p>
+                <div id="allList"></div>
+            </div>
+        </div>
+
+        <div id="page3" class="page">
+            <h1>文章生成</h1>
+            <div class="neu-flat" style="padding: 20px; margin-bottom: 35px;">
+                <p style="font-size: 12px; margin-bottom: 15px; font-weight: bold;">1. 选择生成水平</p>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;" id="lvlGroup">
+                    <div class="lvl-btn neu-flat active" onclick="setLvl('四级', this)">四级</div>
+                    <div class="lvl-btn neu-flat" onclick="setLvl('六级', this)">六级</div>
+                    <div class="lvl-btn neu-flat" onclick="setLvl('考研', this)">考研</div>
+                    <div class="lvl-btn neu-flat" onclick="setLvl('雅思', this)">雅思</div>
+                </div>
+                <button class="lvl-btn neu-flat" style="width: 100%; color: var(--accent-color); font-weight: bold;" onclick="copyPrompt()">2. 复制 AI 提示词</button>
+            </div>
+            <div class="article-stack" id="articleContainer"></div>
+            <button class="lvl-btn neu-flat" style="width: 100%; margin-top: 35px; padding: 15px;" onclick="importArticle()">一键导入生成文本</button>
+        </div>
+
+        <div id="page4" class="page">
+            <h1>个人中心</h1>
+            <div class="profile-header neu-flat">
+                <div class="neu-pressed" style="width:50px; height:50px; border-radius:50%; margin:0 auto 15px; display:flex; align-items:center; justify-content:center;">👤</div>
+                <p id="displayName" style="margin:0; font-weight:bold; text-align: center;">用户名</p>
+            </div>
+            <div class="profile-actions">
+                <button class="lvl-btn neu-flat" onclick="exportData()">导出数据</button>
+                <button class="lvl-btn neu-flat" onclick="document.getElementById('importFile').click()">导入数据</button>
+                <button class="lvl-btn neu-flat" style="color: var(--accent-color);" onclick="document.getElementById('dictFile').click()">导入词书 (JSON)</button>
+                <button class="lvl-btn neu-flat" style="color: var(--danger-color);" onclick="logout()">退出登录</button>
+            </div>
+            <input type="file" id="dictFile" hidden accept=".json" onchange="handleFile(this, 'dict')">
+            <input type="file" id="importFile" hidden accept=".json" onchange="handleFile(this, 'data')">
+        </div>
+    </div>
+
+    <nav class="nav-bar">
+        <div class="nav-item active" onclick="showPage(1)">查询</div>
+        <div class="nav-item" onclick="showPage(2)">词库</div>
+        <div class="nav-item" onclick="showPage(3)">文章</div>
+        <div class="nav-item" onclick="showPage(4)">我的</div>
+    </nav>
+
+    <script>
+        let dictionary = {};
+        let currentUser = "";
+        let stats = { today: [], all: [], articles: [], level: "四级" };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme');
+            const btn = document.getElementById('themeBtn');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                if (btn) btn.innerText = "☀️";
+            }
+        });
+
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            const btn = document.getElementById('themeBtn');
+            btn.innerText = isDark ? "☀️" : "🌙";
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        // 3. 修改点：重写查询逻辑以支持内嵌展示 + 自动记录
+        function doSearch() {
+            const input = document.getElementById('searchInput');
+            const word = input.value.toLowerCase().trim();
+            if(!word) return;
+
+            // 逻辑：即便词书没有，也要记录查询行为
+            if(!stats.all.includes(word)) {
+                stats.all.push(word);
+                stats.today.push(word);
+                updateLists();
+                saveData();
+            }
+
+            // 逻辑展示切换
+            const wrapper = document.getElementById('dictWrapper');
+            const frame = document.getElementById('dictFrame');
+            const localRes = document.getElementById('localRes');
+
+            if (dictionary[word]) {
+                // 本地有词书，优先本地
+                wrapper.style.display = 'none';
+                localRes.style.display = 'block';
+                document.getElementById('resWord').innerText = word;
+                document.getElementById('resMeaning').innerText = dictionary[word];
+            } else {
+                // 本地无词书，开启内嵌查词
+                localRes.style.display = 'none';
+                wrapper.style.display = 'block';
+                frame.src = `https://m.youdao.com/dict?le=eng&q=${encodeURIComponent(word)}`;
+            }
+            input.value = '';
+        }
+
+        function closeDict() {
+            document.getElementById('dictWrapper').style.display = 'none';
+            document.getElementById('dictFrame').src = '';
+            document.getElementById('localRes').style.display = 'block';
+        }
+
+        function login() {
+            const name = document.getElementById('username').value.trim();
+            if(!name) return showToast("请输入用户名");
+            currentUser = name;
+            document.getElementById('displayName').innerText = name;
+            const saved = localStorage.getItem('user_data_' + name);
+            if(saved) stats = JSON.parse(saved);
+            updateLists(); renderArticles(); saveData();
+            document.getElementById('loginOverlay').style.display = 'none';
+        }
+
+        function logout() { location.reload(); }
+        function saveData() { if(currentUser) localStorage.setItem('user_data_' + currentUser, JSON.stringify(stats)); }
+        function showPage(num) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('page' + num).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg; t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }
+        function handleFile(input, type) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const json = JSON.parse(e.target.result);
+                    if(type === 'dict') {
+                        dictionary = {};
+                        if(Array.isArray(json)) {
+                            json.forEach(i => {
+                                const k = i.word || i.key || Object.values(i)[0];
+                                const v = i.trans || i.definition || Object.values(i)[1];
+                                if(k) dictionary[String(k).toLowerCase()] = v;
+                            });
+                        } else {
+                            Object.keys(json).forEach(k => dictionary[k.toLowerCase()] = json[k]);
+                        }
+                        showToast(`词书载入: ${Object.keys(dictionary).length}词`);
+                    } else {
+                        stats = json; updateLists(); renderArticles(); saveData();
+                        showToast("数据导入成功");
+                    }
+                } catch(e) { showToast("文件解析失败"); }
+            };
+            reader.readAsText(input.files[0]);
+        }
+
+        function updateLists() {
+            document.getElementById('todayCount').innerText = stats.today.length;
+            document.getElementById('allCount').innerText = stats.all.length;
+            document.getElementById('todayList').innerHTML = stats.today.map(w => `<div class="word-item"><span>${w}</span></div>`).join('');
+            document.getElementById('allList').innerHTML = stats.all.map(w => `<div class="word-item"><span>${w}</span></div>`).join('');
+        }
+
+        function setLvl(l, el) {
+            stats.level = l;
+            document.querySelectorAll('#lvlGroup .lvl-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            saveData();
+        }
+
+        function copyPrompt() {
+            if(stats.today.length === 0) return showToast("请先查询一些单词");
+            const p = `请作为英语教师，使用以下单词：[${stats.today.join(', ')}]。编写一篇适合【${stats.level}】水平的短文。要求：语境自然，难度适中。`;
+            navigator.clipboard.writeText(p);
+            showToast("提示词已复制到剪贴板");
+        }
+
+        function importArticle() {
+            const content = prompt("请粘贴 AI 生成的内容：");
+            if(!content) return;
+            stats.articles.unshift({ date: new Date().toLocaleDateString(), body: content });
+            renderArticles(); saveData();
+        }
+
+        function renderArticles() {
+            document.getElementById('articleContainer').innerHTML = stats.articles.map(a => `
+                <div class="article-card" onclick="this.classList.toggle('open')">
+                    <div style="font-weight:bold; font-size: 14px;">${a.date} 阅读记录</div>
+                    <div class="article-body">${a.body}</div>
+                </div>
+            `).join('');
+        }
+
+        function exportData() {
+            const blob = new Blob([JSON.stringify(stats)], {type: 'application/json'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${currentUser}_backup.json`; a.click();
+        }
+    </script>
+</body>
+</html>
