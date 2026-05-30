@@ -4,7 +4,6 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>博客后台管理系统</title>
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   </head>
   <body>
     <script>
@@ -19,7 +18,10 @@
           backend: {
             name: "github",
             repo: "kiooo808/kiooo808.github.io",
-            branch: "main"
+            branch: "main",
+            // ========== 🌟 核心修复：引入免费的公共 OAuth 认证网关 ==========
+            base_url: "https://decap-cms-oauth-pkpx.vercel.app", 
+            auth_endpoint: "api/auth"
           },
           site_domain: "kiooo808.github.io",
           media_folder: "source/images",
