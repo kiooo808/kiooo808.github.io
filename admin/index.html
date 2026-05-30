@@ -7,24 +7,16 @@
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   </head>
   <body>
-    <script>
-      window.CMS_MANUAL_INIT = true;
-    </script>
-    
     <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
     
     <script>
-      CMS.init({
-        config: {
-          backend: {
-            name: "github",
-            repo: "kiooo808/kiooo808.github.io",
-            branch: "main"
-          },
-          // 明确指向这里
-          local_backend: false
-        }
-      });
+      // 告诉 CMS 主动去抓取同目录下的 config.yaml 配置文件
+      // 自定义配置文件的扩展名为 .yaml
+      const configUrl = window.location.pathname.endsWith('/') 
+        ? 'config.yaml' 
+        : 'admin/config.yaml';
+        
+      // 这里不需要手动显式调用 CMS.init()，它会自动根据相对路径加载文件
     </script>
   </body>
 </html>
