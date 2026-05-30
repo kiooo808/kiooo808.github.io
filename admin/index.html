@@ -7,16 +7,42 @@
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   </head>
   <body>
-    <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
-    
     <script>
-      // 告诉 CMS 主动去抓取同目录下的 config.yaml 配置文件
-      // 自定义配置文件的扩展名为 .yaml
-      const configUrl = window.location.pathname.endsWith('/') 
-        ? 'config.yaml' 
-        : 'admin/config.yaml';
-        
-      // 这里不需要手动显式调用 CMS.init()，它会自动根据相对路径加载文件
+      window.CMS_MANUAL_INIT = true;
+    </script>
+
+    <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+
+    <script>
+      CMS.init({
+        config: {
+          backend: {
+            name: "github",
+            repo: "kiooo808/kiooo808.github.io",
+            branch: "main"
+          },
+          site_domain: "kiooo808.github.io",
+          media_folder: "source/images",
+          public_folder: "/images",
+          collections: [
+            {
+              name: "moments",
+              label: "动态板块",
+              label_singular: "动态",
+              folder: "source/_posts",
+              create: true,
+              slug: "moment-{{year}}-{{month}}-{{day}}-{{slug}}",
+              fields: [
+                { label: "标题", name: "title", widget: "string", default: "日常碎碎念" },
+                { label: "发布时间", name: "date", widget: "datetime" },
+                { label: "布局样式", name: "layout", widget: "hidden", default: "essay" },
+                { label: "分类", name: "categories", widget: "hidden", default: "动态" },
+                { label: "动态内容", name: "body", widget: "markdown" }
+              ]
+            }
+          ]
+        }
+      });
     </script>
   </body>
 </html>
