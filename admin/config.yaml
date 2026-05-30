@@ -1,0 +1,19 @@
+backend:
+  name: github
+  repo: kiooo808/kiooo808.github.io # 你的仓库
+  branch: main # 源码分支
+
+media_folder: "source/images" # 图片存放路径
+public_folder: "/images"
+
+collections:
+  - name: "moments"
+    label: "动态板块"
+    folder: "source/_posts/moments" # 动态文件存放的文件夹
+    create: true # 允许在网页上新建
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - { label: "标题", name: "title", widget: "string" }
+      - { label: "发布时间", name: "date", widget: "datetime" }
+      - { label: "布局", name: "layout", widget: "hidden", default: "essay" }
+      - { label: "内容", name: "body", widget: "markdown" }
