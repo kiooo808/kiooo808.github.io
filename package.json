@@ -1,13 +1,14 @@
 {
-  "name": "hexo-site",
-  "version": "0.0.0",
-  "private": true,
-  "scripts": {
-    "build": "hexo generate",
-    "clean": "hexo clean",
-    "deploy": "hexo deploy",
-    "server": "hexo server"
-  },
+  
+    "name": "hexo-site",
+    "version": "0.0.0",
+    "scripts": {
+      "build": "hexo generate",
+      "clean": "hexo clean",
+      "deploy": "hexo deploy",
+      "server": "hexo server",
+      "pub": "hexo clean && hexo g -d && git add . && git commit -m \"Update source code\" && git push origin main"
+    },
   "hexo": {
     "version": "8.1.1"
   },
