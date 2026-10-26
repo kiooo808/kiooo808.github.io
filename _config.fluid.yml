@@ -386,9 +386,9 @@ navbar:
     - { key: "category", link: "/categories/", icon: "iconfont icon-category-fill" }
     - { key: "tag", link: "/tags/", icon: "iconfont icon-tags-fill" }
     - { key: 'stats', link: '/statistics/', icon: 'iconfont icon-chart' } 
-    - { key: "日记", link: "/categories/日记/", icon: "iconfont icon-book-fill" }
+    - { key: "日记", link: "/categories/日记/", icon: "iconfont icon-date-fill" }
     - { key: "about", link: "/about/", icon: "iconfont icon-user-fill" }
-    - { key: "EnglishApp", link: "/apps/EnglishApp-v2-kio.html", icon: "iconfont icon-book-fill" }
+    - { key: "EnglishApp", link: "/apps/EnglishApp-v2-kio.html", icon: "iconfont icon-articles" }
   #- { key: "links", link: "/links/", icon: "iconfont icon-link-fill" }
 
 # 搜索功能，基于 hexo-generator-search 插件，若已安装其他搜索插件请关闭此功能，以避免生成多余的索引文件
