@@ -386,6 +386,7 @@ navbar:
     - { key: "category", link: "/categories/", icon: "iconfont icon-category-fill" }
     - { key: "tag", link: "/tags/", icon: "iconfont icon-tags-fill" }
     - { key: 'stats', link: '/statistics/', icon: 'iconfont icon-chart' } 
+    - { key: "日记", link: "/categories/日记/", icon: "iconfont icon-book-fill" }
     - { key: "about", link: "/about/", icon: "iconfont icon-user-fill" }
     - { key: "EnglishApp", link: "/apps/EnglishApp-v2-kio.html", icon: "iconfont icon-book-fill" }
   #- { key: "links", link: "/links/", icon: "iconfont icon-link-fill" }
