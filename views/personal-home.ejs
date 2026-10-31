@@ -1,0 +1,37 @@
+<div class="personal-site site-home">
+  <section class="space-hero" aria-labelledby="home-title">
+    <div>
+      <p class="space-eyebrow">KIOOO808 / PERSONAL SPACE</p>
+      <h1 id="home-title">记录探索，<br>积累知识，<br><span>构建作品。</span></h1>
+      <p class="space-intro"><%= page.personal.description %></p>
+      <div class="space-actions"><a class="space-button" href="<%= url_for('/projects/') %>">看看我的项目 <span aria-hidden="true">↗</span></a><a class="space-text-link" href="<%= url_for('/knowledge/') %>">从知识库开始 →</a></div>
+    </div>
+    <aside class="space-notebook" aria-label="空间里的三个方向">
+      <div class="notebook-top"><span>一点一滴 / IN PROGRESS</span><span aria-hidden="true">✳</span></div>
+      <ol><li><span>01 / LEARN</span><strong>把学过的，整理清楚。</strong><small>课程 · 代码 · 阅读</small></li><li><span>02 / BUILD</span><strong>把想到的，动手做出来。</strong><small>工具 · 实践 · 迭代</small></li><li><span>03 / WRITE</span><strong>把走过的，认真记下来。</strong><small>分享 · 思考 · 日常</small></li></ol>
+      <div class="notebook-bottom">保持好奇，慢慢生长。 <span aria-hidden="true">↗</span></div>
+    </aside>
+  </section>
+
+  <nav class="space-entries" aria-label="探索内容">
+    <% for (const [key, title, note, count] of [['projects','项目','从想法到作品',page.personal.projects.length], ['knowledge','知识库','按主题积累',page.grouped.knowledge.length], ['blog','博客','实践与个人思考',page.grouped.blog.length], ['diary','日记','留住日常片段',page.grouped.diary.length]]) { %>
+      <a href="<%= url_for('/' + key + '/') %>"><div><h2><%= title %> <sup><%= count %></sup></h2><p><%= note %></p></div><span aria-hidden="true">↗</span></a>
+    <% } %>
+  </nav>
+
+  <section class="space-section" aria-labelledby="projects-heading">
+    <div class="space-section-heading"><div><p class="space-eyebrow">BUILD / 动手做点东西</p><h2 id="projects-heading">精选项目</h2></div><a href="<%= url_for('/projects/') %>">所有项目 →</a></div>
+    <%- partial('personal-project-cards', { projects: page.personal.projects }) %>
+  </section>
+
+  <section class="space-section" aria-labelledby="knowledge-heading">
+    <div class="space-section-heading"><div><p class="space-eyebrow">LEARN / 让知识有迹可循</p><h2 id="knowledge-heading">知识地图</h2></div><a href="<%= url_for('/knowledge/') %>">进入知识库 →</a></div>
+    <div class="space-topic-grid"><% page.personal.topics.forEach((topic, index) => { %><a class="space-topic" href="<%= url_for('/knowledge/#topic-' + index) %>"><span class="space-topic-number">0<%= index + 1 %></span><h3><%= topic.name %></h3><p><%= topic.description %></p><span aria-hidden="true">↗</span></a><% }) %></div>
+  </section>
+
+  <section class="space-section" aria-labelledby="recent-heading">
+    <div class="space-section-heading"><div><p class="space-eyebrow">WRITE / 最近留下的记录</p><h2 id="recent-heading">最近更新</h2></div><a href="<%= url_for('/archives/') %>">全部记录 →</a></div>
+    <%- partial('personal-post-list', { posts: page.recent }) %>
+  </section>
+  <p class="space-closing">这个空间和我一样，还在持续生长。 <a href="<%= url_for('/about/') %>">关于我 ↗</a></p>
+</div>

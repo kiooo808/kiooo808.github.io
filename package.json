@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "check:posts": "node tools/check-posts.cjs",
+    "check:site": "node tools/check-site.cjs",
     "build": "npm run check:posts && hexo generate --bail",
     "clean": "hexo clean",
     "deploy": "hexo deploy",

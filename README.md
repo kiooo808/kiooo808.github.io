@@ -1,5 +1,41 @@
 # 个人博客
 
+## 个人空间（第一、二阶段）
+
+首页是个人介绍、四个内容入口、真实项目、知识地图和最近 4 条更新。
+
+| 入口 | 地址 | 内容来源 |
+| --- | --- | --- |
+| 项目 | `/projects/` | `source/_data/personal.yml` 中的项目；详情自动关联对应分类的更新文章 |
+| 知识库 | `/knowledge/` | 学校课程、证书考试、读书笔记；按主题分组，组内从早到晚阅读 |
+| 博客 | `/blog/` | 个人写作、应用更新及其他文章；每页 10 篇 |
+| 日记 | `/diary/` | 日记分类；按年月显示，每页 10 篇 |
+
+所有旧文章保持文件名、日期和路径不变。旧归档、分类、标签、统计、`/page/2/` 和 EnglishApp 地址继续生成。全部内容仍可通过 `/archives/` 浏览。统计页沿用旧内容，已移出主导航。
+
+### 添加和组织内容
+
+继续在 `source/_posts/` 写 Markdown，不需要移动旧文章。可以在头部显式设置 `section: blog`、`section: knowledge` 或 `section: diary`；未填写时按上表的原分类自动归属。分类和标签仍按 Hexo 原规则工作。
+
+`source/_data/personal.yml` 集中维护简介、知识主题和项目列表。主题的 `category` 要与文章中的分类名称一致；新增其他知识主题前，内容也会出现在知识库的「其他笔记」。项目的 `slug` 使用唯一的英文短名，`url` 填实际工具地址，`category` 用于关联开发记录。
+
+首页自动选择按发布日期倒序的 4 条记录。测试或未完成文章可以设置 `home: false`，仅退出首页推荐，不会取消发布；`home_exclude` 记录已有测试和占位内容的文件路径（相对 `_posts/`）。
+
+站点模板在 `views/`，生成逻辑在 `scripts/personal-site.js`，分区规则在 `lib/content.cjs`。不修改 `node_modules/hexo-theme-fluid/`，升级或重新安装依赖后仍然生效。
+
+### 验证与部署
+
+```sh
+npm ci
+npm run clean
+npm run build
+npm run check:site
+```
+
+可用 `node tools/check-site.cjs <改版前的 public 目录>` 检查原有 URL 和静态附件是否保留。构建仍使用原有 `npm run build`，部署流程保持 `main` → GitHub Actions → `gh-pages` → GitHub Pages。合并改版分支后自动部署，无需更换 Pages 设置。
+
+后续阶段再增加知识库章节前后导航及 Markdown 导入/发布后台；当前没有登录或仓库写入功能。
+
 ## 在 GitHub 上传日记
 
 1. 选择 `main` 分支，进入 `source/_posts/日记/`。
