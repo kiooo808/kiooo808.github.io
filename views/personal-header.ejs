@@ -1,0 +1,10 @@
+<% if (page.is_personal_home) { %>
+  <div class="header-inner personal-home-header">
+    <nav id="navbar" class="navbar fixed-top" aria-label="页头">
+      <div class="container"><a class="navbar-brand" href="<%= url_for('/') %>">kiooo808<span class="space-brand-dot" aria-hidden="true"></span></a></div>
+    </nav>
+  </div>
+  <script src="<%= url_for('/js/personal-navigation.js') %>" defer></script>
+<% } else { %>
+  <%- partial('_partials/header') %>
+<% } %>

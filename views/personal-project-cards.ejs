@@ -1,6 +1,10 @@
 <div class="space-projects"><% projects.forEach(project => { %>
   <article class="space-project-card">
-    <div class="space-project-art" aria-hidden="true"><span>PERSONAL TOOL / 01</span><strong>En<span>.</span></strong><div>COLLECT WORDS.<br>CONNECT IDEAS.</div></div>
-    <div class="space-project-info"><p class="space-eyebrow"><%= project.label %></p><h3><a href="<%= url_for('/projects/' + project.slug + '/') %>"><%= project.title %></a></h3><p><%= project.description %></p><div class="space-tags"><% project.stack.forEach(tag => { %><span><%= tag %></span><% }) %></div><div class="space-actions"><a class="space-button" href="<%= url_for(project.url) %>">打开工具 ↗</a><a class="space-text-link" href="<%= url_for('/projects/' + project.slug + '/') %>">项目与更新 →</a></div></div>
+    <div class="space-project-info">
+      <div class="space-project-title"><div class="space-project-art" aria-hidden="true">En<span>.</span></div><div><p class="space-eyebrow"><%= project.label %></p><h3><a href="<%= url_for('/projects/' + project.slug + '/') %>"><%= project.title %></a></h3></div></div>
+      <p class="space-project-description"><%= project.description %></p>
+      <div class="space-tags"><% project.stack.forEach(tag => { %><span><%= tag %></span><% }) %></div>
+      <div class="space-actions"><a class="space-button" href="<%= url_for(project.url) %>">打开工具 <span aria-hidden="true">↗</span></a><a class="space-text-link" href="<%= url_for('/projects/' + project.slug + '/') %>">开发记录 →</a></div>
+    </div>
   </article>
 <% }) %></div>

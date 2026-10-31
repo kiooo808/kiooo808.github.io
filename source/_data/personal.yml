@@ -1,22 +1,22 @@
-description: 这里是 kiooo808 的个人空间。把课程学习整理成知识，把想法做成小工具，也留下一些阅读与生活的片段。
+description: 项目、笔记，还有日常。
 topics:
   - name: 电气控制
     category: 电气控制技术
-    description: 从接线图开始，理解电动机的控制逻辑。
+    description: 电动机与控制电路
   - name: C 语言
     category: c语言学习与应用
-    description: 在小程序中练习条件判断与数据处理。
+    description: 基础语法与程序练习
   - name: 英语学习
     category: 英语四级
-    description: 词汇、阅读与每日练习，按顺序慢慢积累。
+    description: 四级词汇与阅读练习
   - name: 阅读笔记
     category: 读书笔记
-    description: 留下读书时的问题与思考，持续补充。
+    description: 阅读摘记与个人理解
 projects:
   - slug: englishapp
     title: EnglishApp
     label: 英语学习工具
-    description: 从自己的学习需求出发，做一个记录词汇、整理释义与例句的网页工具。
+    description: 记录单词、释义和例句的英语学习工具。
     url: /apps/EnglishApp-v2-kio.html
     category: EnglishApp
     stack: [HTML, JavaScript, 本地存储]

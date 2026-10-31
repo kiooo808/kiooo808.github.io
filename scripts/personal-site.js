@@ -11,6 +11,10 @@ const { sectionOf } = require('../lib/content.cjs');
 hexo.extend.helper.register('content_section', sectionOf);
 hexo.extend.helper.register('section_label', post => ({ blog: '博客', knowledge: '知识库', diary: '日记' })[sectionOf(post)]);
 
+hexo.extend.filter.register('theme_inject', function (injects) {
+  injects.header.file('default', path.join(hexo.base_dir, 'views', 'personal-header.ejs'));
+});
+
 // Register after Fluid loads so npm upgrades never overwrite our templates/generator.
 hexo.extend.filter.register('before_generate', function () {
   const directory = path.join(hexo.base_dir, 'views');
@@ -27,6 +31,7 @@ hexo.extend.filter.register('before_generate', function () {
       path: route + 'index.html', layout, data: { ...common, title, ...extra }
     });
     const routes = [page('', '个人空间', 'personal-home', {
+      is_personal_home: true,
       recent: all.filter(post => !post.archive && post.home !== false && !(personal.home_exclude || []).includes(post.source.replace(/^_posts\//, ''))).slice(0, 4)
     }), page('projects/', '项目', 'personal-projects'), page('knowledge/', '知识库', 'personal-knowledge')];
     for (const [section, title] of [['blog', '博客'], ['diary', '日记']]) {
