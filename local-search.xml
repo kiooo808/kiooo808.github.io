@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  
+  
+  
+  <entry>
+    <title>26-10-26-日记</title>
+    <link href="/2026/10/26/%E6%97%A5%E8%AE%B0/26-10-26%20%E6%97%A5%E8%AE%B0/"/>
+    <url>/2026/10/26/%E6%97%A5%E8%AE%B0/26-10-26%20%E6%97%A5%E8%AE%B0/</url>
+    
+    <content type="html"><![CDATA[<p>这是一篇测试帖子。</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>日记</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>日记</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>EnglishAPP.V2</title>
+    <link href="/2026/05/12/%E5%85%B6%E5%AE%83/%E7%BD%91%E9%A1%B5%E6%9B%B4%E6%96%B0/EnglishAPP.V2/"/>
+    <url>/2026/05/12/%E5%85%B6%E5%AE%83/%E7%BD%91%E9%A1%B5%E6%9B%B4%E6%96%B0/EnglishAPP.V2/</url>
+    
+    <content type="html"><![CDATA[<p>更新功能介绍：<br>1.<strong>优化本地数据储存策略</strong><br>  原本的本地储存策略在纯单词录入下勉强够用，但是在考虑到增加释义和例句功能后就显得捉襟见肘，容易超出存储限制。所以彻底变更本地数据存储策略。用户再也不用担心本地数据太多而网页崩溃啦~</p><p>2.。<strong>优化查询界面</strong><br>  （1）新增本地释义、本地例句导入和查看<br>  使用场景：查询单词时跳转有道词典后可长按复制至设备剪切板，并手动粘贴至本地网页内。有助于构建自己的词库，加深记忆和理解。<br>  （2）优化查询逻辑<br>  原来的查询逻辑是先查询本地词书，没有数据再查询在线词库。在新增2后，如果用户导入了本地例句，那么也不会触发查询在线词库，那么查询功能就失效了。所以优化查询逻辑为同时显示在线词库结果和本地词库结果。<br>  （3）新增暗黑模式词典亮度调节滑杆<br>  当开发者在某个深夜查询单词时被屏幕差点闪瞎后，决心新增此功能。仅在暗黑模式下显示此滑杆于查询界面，方便调节。</p><p>3.<strong>优化词库界面</strong><br>  （1）优化单词显示<br>  原来的词库界面单词列表过于大了，当单词太多之后很难一下子看完今日所记单词，出于实用性的考虑，缩小了单词列表。同时新增了点击查看本地释义和例句的功能，便于回顾。<br>  （2）新增收藏夹功能<br>  点击单词右侧五角星即可加入收藏夹。当我们为一个单词找到很妙&#x2F;有意义的例句，我们可以把它加入收藏夹，方便未来快速查看例句。</p><p>4.<strong>优化文章界面</strong><br>  （1）优化提示词<br>  将提示词改为根据单词数量而动态修改。<br>  （2）调整文章生成按钮位置</p><p>  （3）新增单词来源选择<br>  目前可选择三个来源：今日单词，生词本，收藏夹。<br>  （4）新增了快速跳转gpt的功能<br>  如果想问为什么是gpt，而不是deepseek呢。是不是因为开发者不爱国呢。no！加油华为加油China！呃呃呃主要是只有gpt比较方便，可以不用登录打开即用，还可以支持自动粘贴提示词。<br>    (5)新增通过单词查询历史文章功能</p><p>5.<strong>优化个人界面</strong><br>  （1）优化按钮大小<br>  统一了界面内浅色&#x2F;深色模式切换的按钮大小，使个人界面看起来更加协调美观。<br>  （2）优化数据导出<br>  优化本地数据架构，新增单词的释义和例句的json文件导出。方便更多个性化的词书在用户的学习复习中被编写。支持自愿上传互联网丰富中英开源词书数据。</p><p>6.<strong>增加复习界面</strong><br>  需要注意，这个界面不要点得太快，会看不出来按动反馈。不过我对单词加入生词本的操作进行了浮窗提示，所以现在只是有些看不出来按动反馈，用户可以感知到自己的操作是否有效。<br>  界面内有四个板块。分别是“今日新学”“正在复习”“复习完成”“生词本”。<br>  （1）<strong>今日新学</strong><br>            其实这个界面与词库界面有些重复了，暂时留置是因为后续功能增加可能会需要它。<br>  （2）<strong>正在复习</strong><br>            此界面可切换卡片模式&#x2F;列表模式。卡片模式用于深度学习，列表模式用于快速过筛。<br>            同时此处采用的复习逻辑为：针对首次复习的单词，提供“已掌握”、“不熟悉”、“加入生词本”及“查看释义”四个选项。点击“已掌握”将结束循环并使其进入下一阶段复习；点击“不熟悉”则会将单词放回当前列表末尾，强制你在本次练习中反复识记，直到通过点击“已掌握”跳出循环。而针对非首次复习的单词，选项扩展为“认识”、“模糊”、“不认识”、“加入生词本”及“查看释义”五个。点击“认识”会让单词正常晋级至下一阶段。若点击“模糊”或“不认识”，系统将执行“减半且重置起始点”逻辑：单词的复习阶段会按比例（0.7或0.5倍）缩减，并强制其在明天立即出现以实现惩罚性重学；一旦明天复习通过，单词将根据缩减后的阶段直接跳级至对应的长间隔，利用残余记忆实现高效恢复。<br>  （3）<strong>复习完成</strong><br>            此界面查看自己每个复习阶段的单词数量，帮助合理安排精力。不过需要注意，此处的阶段分布是指完成阶段，即完成一阶段复习而没有完成二阶段复习的单词则记为处于第一阶段。<br>            间隔说明在该界面有详细展示，不再赘述。<br>  （4）<strong>生词本</strong><br>            可以记录不熟悉的生词。</p><p>7.<strong>增加统计界面</strong><br>  激励用户学习、复习。<br>  展示当月日历。有进行查询的天数为绿色，未进行查询的天数为灰色。同时点击日期会短暂小浮窗显示当日学习单词数量和复习操作数量。<br>  下方展示“今日单词”“累积学习天数”“累计复习天数”“连续学习天数”四项数据。</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>其它</category>
+      
+      <category>网页更新</category>
+      
+      <category>EnglishApp</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>功能更新</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>EnglishApp</title>
+    <link href="/2026/04/28/%E5%85%B6%E5%AE%83/%E7%BD%91%E9%A1%B5%E6%9B%B4%E6%96%B0/EnglishApp/"/>
+    <url>/2026/04/28/%E5%85%B6%E5%AE%83/%E7%BD%91%E9%A1%B5%E6%9B%B4%E6%96%B0/EnglishApp/</url>
+    
+    <content type="html"><![CDATA[<p>四月份总体上来说过得很悠闲，把学习考试什么什么的放到身后不管不顾了，五月份准备重启学习。<br>对于单词学习，想了想在个人网页中公开展示实在是没有必要，所以借助ai vibe coding了一个基于本地存储数据的英语词汇记录并导出的功能界面，反复修改至4月30日终于是完善得差不多，整体算是较为简洁美观实用。</p><p>功能界面介绍：<br>1.<strong>登录页</strong><br>使用用户名登入将本地数据划分为不同用户名分开管理。<br>2.<strong>查询页</strong><br>查询界面page1调用有道词典查询。查询之后自动收录进词库界面page2。<br>3.<strong>词库页</strong><br>词库界面page2展示“今日新增”和“全部记录”两个列表，方便复习回顾。<br>4.<strong>文章页</strong><br>文章界面page3调用今日学习单词按照语言水平生成ai文章提示词，用户复制提示词后自行使用ai生成文章。<br>生成文章后返回page3点击“一键导入生成文本”导入文章。文章将显示在此按钮上方，格式为“xx&#x2F;xx&#x2F;xx（年&#x2F;月&#x2F;日） 阅读记录”，默认折叠内容，点击可展开文章内容详情。<br>5.<strong>个人页</strong><br>我的界面page4展示用户名和相关功能。其中导入词书后查询结果会显示本地词书内容。</p><p><strong>注意事项</strong><br>实际使用中发现该功能界面的在线查询功能只适用于移动端，电脑端使用请导入本地词书。<br>数据保存依靠本地存储，为了避免设备故障导致数据丢失，请保持定时导出数据的习惯。</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>其它</category>
+      
+      <category>网页更新</category>
+      
+      <category>EnglishApp</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>功能更新</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>电动机正反转控制电路</title>
+    <link href="/2026/04/16/%E5%AD%A6%E6%A0%A1%E8%AF%BE%E7%A8%8B/%E7%94%B5%E6%B0%94%E6%8E%A7%E5%88%B6%E6%8A%80%E6%9C%AF/%E7%94%B5%E5%8A%A8%E6%9C%BA%E6%AD%A3%E5%8F%8D%E8%BD%AC%E6%8E%A7%E5%88%B6%E7%94%B5%E8%B7%AF/"/>
+    <url>/2026/04/16/%E5%AD%A6%E6%A0%A1%E8%AF%BE%E7%A8%8B/%E7%94%B5%E6%B0%94%E6%8E%A7%E5%88%B6%E6%8A%80%E6%9C%AF/%E7%94%B5%E5%8A%A8%E6%9C%BA%E6%AD%A3%E5%8F%8D%E8%BD%AC%E6%8E%A7%E5%88%B6%E7%94%B5%E8%B7%AF/</url>
+    
+    <content type="html"><![CDATA[<p>使用auto cad 2026 绘制。<br>由于暂时没有接受过专业绘图知识，此接线图仅可作为实际接线的参考图，专业性欠佳。<br>在线预览：</p><div style="text-align: center;">  <iframe src="01.pdf" width="100%" height="500px" frameborder="0"></iframe></div><p><a href="01.pdf">点击查看&#x2F;下载 PDF 手册</a></p>]]></content>
+    
+    
+    <categories>
+      
+      <category>学校课程</category>
+      
+      <category>电气控制技术</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>专业课</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>if-elseif语句数据转换等级</title>
+    <link href="/2026/04/10/%E5%AD%A6%E6%A0%A1%E8%AF%BE%E7%A8%8B/c%E8%AF%AD%E8%A8%80%E5%AD%A6%E4%B9%A0%E4%B8%8E%E5%BA%94%E7%94%A8/if-elseif%E8%AF%AD%E5%8F%A5%E6%95%B0%E6%8D%AE%E8%BD%AC%E6%8D%A2%E7%AD%89%E7%BA%A7/"/>
+    <url>/2026/04/10/%E5%AD%A6%E6%A0%A1%E8%AF%BE%E7%A8%8B/c%E8%AF%AD%E8%A8%80%E5%AD%A6%E4%B9%A0%E4%B8%8E%E5%BA%94%E7%94%A8/if-elseif%E8%AF%AD%E5%8F%A5%E6%95%B0%E6%8D%AE%E8%BD%AC%E6%8D%A2%E7%AD%89%E7%BA%A7/</url>
+    
+    <content type="html"><![CDATA[<p>提示：<br>1.本程序在 Visual Studio 环境下运行。若编译器报错 C4996（针对 scanf），请在“项目属性 -&gt; C&#x2F;C++ -&gt; 预处理器”中添加 _CRT_SECURE_NO_WARNINGS 宏定义。<br>2.程序相较于课程要求新增逻辑校验，输入的成绩必须在 0-100 之间，否则将提示错误。<br>3.代码严格遵循 ISO C 标准，使用 int main() 作为程序入口，所以以“return 0;”结尾。但是教材中使用void main()，可使用“return 0;”结尾或直接忽略不写。</p> <script src="https://gist.github.com/kiooo808/6a1a03a2964a38104d9dd56029bf7c45.js"></script>]]></content>
+    
+    
+    <categories>
+      
+      <category>学校课程</category>
+      
+      <category>c语言学习与应用</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>专业课</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>day-4</title>
+    <link href="/2026/04/09/%E8%AF%81%E4%B9%A6%E8%80%83%E8%AF%95/%E8%8B%B1%E8%AF%AD%E5%9B%9B%E7%BA%A7/day-4/"/>
+    <url>/2026/04/09/%E8%AF%81%E4%B9%A6%E8%80%83%E8%AF%95/%E8%8B%B1%E8%AF%AD%E5%9B%9B%E7%BA%A7/day-4/</url>
+    
+    <content type="html"><![CDATA[<p>Article I: The Mechanics of Urban Monopoly</p><p>In the modern urban landscape, the evolution of business models dictates the survival of the mass. Fast food chains often achieve a monopoly by using their capital to penetrate every neighborhood. Their main rival might try to hold one’s own through a variation of style, but the regularity of freight and delivery usually ensures the former’s dominance.</p><p>When a monetary crisis occurs, international authorities may locate the source of the lag in the market. If a corporation is too vulnerable, the government might bail them out to prevent a total collapse. Meanwhile, the operation director must spell out every contract to the staffer to avoid a conflict. By and large, the quality of life depends on whether one can get by in this competitive phase. Even if you are on the fence about the ethics of mass consumption, you must face up to the fact that these systems come into effect regardless of individual vote.</p><p>Article II: Ecological Integration and the Biological Cost</p><p>The World Wildlife Fund continues to highlight the reduction of natural habitat. When we build a corridor or a garage in a previously isolate area, we disturb the constant balance of nature. The integration of human infrastructure—like the street or the garden—often forces animals like the ox or camel to descend into smaller territories.</p><p>This is a process of slow destruction, occurring bit by bit. Moreover, the ash from industrial plants can penetrate the basin where we collect water. We must strive to protect the outstanding beauty of the wilderness before it is less than a memory. At at no time should we assume that nature can shake off this attack without help. If we deceive ourselves, the awful truth will eventually clash with our desire for pleasure. We must take heart and back down from total exploitation.</p><p>Article III: The Individual within the System</p><p>Inside an inn in Fresno or a house in South Carolina, a pupil sits on a stool, looking at a bulb. In the cupboard, there is meat and dairy. Outside, a security guard watches a pedestrian walk across the border of the property. Life is a series of regularity and pause. One might play chess or golf, or perhaps pick up a saw to cut a limb of a tree in half.</p><p>If a panic arises—perhaps the sound of a pistol or an urgent call for help—the brain must react. Do you stay and be involved in the solution, or do you see off the danger and sign off for the night? Some might talk through one’s hat about bravery, but on the spot, many cling to what is safe. You might sip your tea and catch one’s breath, but the fundamental anxiety of life remains consistent. Whether you are an elite or a dumb observer, you are bound by the frame of your own journalism—the story you tell yourself to take over your own fear.</p><p style="text-align: right; font-size: 1.1em;">  The above articles were written by <strong style="background: linear-gradient(to right, #4285F4, #9B72CB); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">✦ Gemini</strong></p ><p>mention the words and phrase are as follows:<br>seal,within,get by,security guard,call for,favour,percent,stool,talk through one’s hat,ltalian,bit by bit,moreover,solution,panic,sign off,inn,match,Fresno,lag,on the fence,isolate,integration,main rival,pupil,cupboard,dairy,nude,style,freight,across,at no time,corridor,penetrate,habitat,bulb,dismiss,by and large,golf,border,pick,elite,variation,highlight,fast food chains,hold one’s own,mass,deceive,roller,instrument,urban,reduction,conflict,clap,amongst,ox,constant,rope,in kind,chess,limb,camel,dumb,face up to,frame,journalism,monetary,case,vulnerable,business models,phase,cool down,capital,spell out,staffer,surrender,attack,the World Wildlife Fund,react,neighborhood,assume,international authorities,medium,point,see off,less than,garden,basin,anxiety,proper,quality,all the same,consistent,back down,start out,despatch,pause,vote,locate,pedestrian,contract,barely,bail,catch one’s breath,associate,be involved in,pistol,awful,ash,monopoly,meat,a process of,delivery,forward,pack,fundamental,pleasure,on the spot,regularity,sip,take over,shoot,urgent,latter,take heart,cling,come into effect,descend,brain,outstanding,garage,gentle,strive,government,shake,operation director,in half,saw,street,South Carolina</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>证书考试</category>
+      
+      <category>英语四级</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>英语四级</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>电动机点动与长动控制电路</title>
+    <link href="/2026/04/08/%E5%AD%A6%E6%A0%A1%E8%AF%BE%E7%A8%8B/%E7%94%B5%E6%B0%94%E6%8E%A7%E5%88%B6%E6%8A%80%E6%9C%AF/%E7%94%B5%E5%8A%A8%E6%9C%BA%E7%82%B9%E5%8A%A8%E4%B8%8E%E9%95%BF%E5%8A%A8%E6%8E%A7%E5%88%B6%E7%94%B5%E8%B7%AF/"/>
+    <url>/2026/04/08/%E5%AD%A6%E6%A0%A1%E8%AF%BE%E7%A8%8B/%E7%94%B5%E6%B0%94%E6%8E%A7%E5%88%B6%E6%8A%80%E6%9C%AF/%E7%94%B5%E5%8A%A8%E6%9C%BA%E7%82%B9%E5%8A%A8%E4%B8%8E%E9%95%BF%E5%8A%A8%E6%8E%A7%E5%88%B6%E7%94%B5%E8%B7%AF/</url>
+    
+    <content type="html"><![CDATA[<p>使用auto cad 2026 绘制。<br>由于暂时没有接受过专业绘图知识，此接线图仅可作为实际接线的参考图，专业性欠佳。<br>在线预览：</p><div style="text-align: center;">  <iframe src="01.pdf" width="100%" height="500px" frameborder="0"></iframe></div><p><a href="01.pdf">点击查看&#x2F;下载 PDF 手册</a></p>]]></content>
+    
+    
+    <categories>
+      
+      <category>学校课程</category>
+      
+      <category>电气控制技术</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>专业课</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>day-3</title>
+    <link href="/2026/04/07/%E8%AF%81%E4%B9%A6%E8%80%83%E8%AF%95/%E8%8B%B1%E8%AF%AD%E5%9B%9B%E7%BA%A7/day-3/"/>
+    <url>/2026/04/07/%E8%AF%81%E4%B9%A6%E8%80%83%E8%AF%95/%E8%8B%B1%E8%AF%AD%E5%9B%9B%E7%BA%A7/day-3/</url>
+    
+    <content type="html"><![CDATA[<p>Article 1: Industrial Evolution &amp; Environmental Logic </p><p>重点涵盖： origin, mill, silicon, transform, cornerstone, presently, utilise, lens, New Hampshire, Bedfordshire, volume, border crossings, maximum, simplicity, recreation, deliberate, cycle, deliver, miracle, major, financial, crisis, disrupt, ecology, inhabitant, hungry, hardship, weigh, merit, safety concerns, spin, out of control, world car-free day, rally, reflect, significant reduction, combat, cloudy, molecule, burn up, raid, organic, lung, branch, ecology, ecology (ecology), ecology (ecology).</p><p>To understand the origin of modern industry, we must look at the mill as the cornerstone of production. However, presently, we utilise a lens of silicon to transform our efficiency. In industrial hubs from New Hampshire to Bedfordshire, the volume of goods at border crossings has reached a maximum. This evolution is anything but a simple recreation; it is a deliberate cycle designed to deliver an economic miracle.</p><p>Yet, every major financial crisis can disrupt the global ecology, leaving the inhabitant hungry and facing hardship. We must weigh the merit of growth against safety concerns, or the system may spin out of control. On World Car-Free Day, a public rally can reflect a significant reduction in pollution, showing our intent to combat a cloudy future. Every molecule of CO2 contributes to the burn up of our atmosphere—a raid on the planet’s lungs. We must protect every branch of the biological organism to survive.</p><p>Article 2: Social Governance &amp; Individual Paths<br>重点涵盖： discussion, dean, cousin, side by side, determine, abolish, theft, verbal abuse, alley, eager, internship, seize upon, ideal, make a difference, hold fast to, honest, know better, imitate, extremist, post on, post, profile, recruit, speak for, commonplace, article, comprise, parallel, set sail, whale, at sea, absence, integrate into, circle, exchange, catch, crocodile, spot, hopeless, below, level, specialize, extend, advantage, bitter, scare, take it easy, up-to-date, magic, frontier.</p><p>In a recent discussion, a university dean and his cousin sat side by side to determine how to abolish theft and verbal abuse in the city’s dark alleys. They concluded that an eager student in an internship should seize upon an ideal to make a difference. One must hold fast to honest values and know better than to imitate extremist rhetoric.</p><p>This article comprises several parallel arguments: whether we post on social media or a physical post, the profile we recruit must speak for the commonplace citizen. We set sail like a whale at sea, often feeling at sea in the absence of clear guidance. To succeed, one must integrate into a global circle of exchange. If life’s challenges catch you like a crocodile in a tight spot, do not feel hopeless. Even if you are below the expected level, you can specialize to extend your advantage. Don’t let bitter memories scare you; take it easy, stay up-to-date, and find the magic in the new frontier.</p><p>Article 3: Survival, Ethics &amp; Daily Reality<br>重点涵盖： location, Goat Island, lay down, blanket, picturesque, release from, tie, lifetime, fireman, doll, postmaster general, deposit, up to, slender, pale, balloon, implement, clause, restrict, thereby, suicide, turn, inside out, algebra, in short, champagne, affluent, butter, humble, retain, brand, regarding, the Good vehicle, reach, simplicity, by itself, non-life-threatening injuries, plunge, hole over, beat down, inner, album, maximum, record, record (record), record (record).</p><p>At the location of Goat Island, one might lay down a blanket to admire the picturesque view, finally release from the tie of a stressful lifetime. Whether you are a fireman rescuing a doll or a postmaster general securing a deposit, the value of your work is up to your dedication. Even a slender, pale balloon can reflect the fragile beauty of existence.</p><p>To protect this beauty, we must implement every clause to restrict environmental damage, thereby reducing the despair that leads to suicide. Sometimes you must turn your life inside out and solve its problems like a complex algebra equation. In short, whether you are drinking champagne with the affluent or eating butter in a humble cottage, you must retain your personal brand of integrity. Regarding the Good vehicle of social progress, we must reach a level of simplicity where the system mends by itself. Even when facing non-life-threatening injuries, we must plunge into recovery rather than hole over in grief. Do not let the beat down of the world crush your inner spirit; keep your album of memories full of the maximum joy possible.</p><p style="text-align: right; font-size: 1.1em;">  The above articles were written by <strong style="background: linear-gradient(to right, #4285F4, #9B72CB); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">✦ Gemini</strong></p ><p>mention the words and phrase are as follows:<br>album,maximum,beat down,transform,simplicity,implement,by itself,mild,reflect.volume,theft,lay down,blanket,lifetime,dye,recreation,circle,border crossings,financial,empower,burn up,rally,algebra,parallel,utilise,convention,determine,internship,verbal abuse,deposit,imitate,preceding,dean,cousin,side by side,overdue,below,bitter,origin,refine,presently,ballon,crisis,specialize,level,seize upon,at sea,absence,crocodile,mill,plunge,up to,hole over,location,throughout,release from,hardship,hungry,exchange,integrate into,cornerstone,spot,non-life-threatening injuries,honest,slender,suicide,ecology,disrupt,lung,clause,silicon,extend,make a difference,post,picturesque,catch,scare,champagne,major,fireman,doll,Goat island,butter,take it easy,turn,inside out,discussion,ideal,hold fast to,Bedfordshire,deliberate,eager,restrict,solemn,thereby,regarding,know better,safety concerns,pinch,alley,tie,photograph,out of control,whale,speak for,merit,post on,set sail,abolish,inhabitant,significant reduction,affluent,advantage,cloudy,commonplace,combat,extremist,world car-free day,hopeless,anything but,molecule,frontier,spin,civilize,New Hampshire,up-to-date,in short,raid,magic,darling,recruit,profile,postmaster general,retain,organism,lens,the Good vehicle,branch,principle,comprise,brand,miracle,pale,deliver,inner,weigh,article</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>证书考试</category>
+      
+      <category>英语四级</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>英语四级</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>读书笔记1</title>
+    <link href="/2026/04/05/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E4%BA%BA%E6%96%87%E7%A4%BE%E7%A7%91/%E5%BF%83%E7%90%86%E5%AD%A6/%E4%B8%BA%E4%BD%95%E5%AE%B6%E4%BC%9A%E4%BC%A4%E4%BA%BA/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B01/"/>
+    <url>/2026/04/05/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E4%BA%BA%E6%96%87%E7%A4%BE%E7%A7%91/%E5%BF%83%E7%90%86%E5%AD%A6/%E4%B8%BA%E4%BD%95%E5%AE%B6%E4%BC%9A%E4%BC%A4%E4%BA%BA/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B01/</url>
+    
+    <content type="html"><![CDATA[<p>我甚至连文章名字都还没想好！静待更新吧！</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>读书笔记</category>
+      
+      <category>人文社科</category>
+      
+      <category>心理学</category>
+      
+      <category>为何家会伤人-武志红</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>原生家庭</tag>
+      
+      <tag>心理健康</tag>
+      
+      <tag>沟通</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>day-2</title>
+    <link href="/2026/04/05/%E8%AF%81%E4%B9%A6%E8%80%83%E8%AF%95/%E8%8B%B1%E8%AF%AD%E5%9B%9B%E7%BA%A7/day-2/"/>
+    <url>/2026/04/05/%E8%AF%81%E4%B9%A6%E8%80%83%E8%AF%95/%E8%8B%B1%E8%AF%AD%E5%9B%9B%E7%BA%A7/day-2/</url>
+    
+    <content type="html"><![CDATA[<p>Article 1: The High-Tech Wilderness (荒野中的科技小屋)<br>重点涵盖：random, humble, automate, burn down, centimetre, pair, exhaust, exceed, cycle, idle, beyond doubt, laser, sunset, fancy, arithmetic, virtual, wire, straightforward, intensive, ax, database, famed, fiber, turn on, drawer, fridge, August, uninjured, bundle, supper, sock, hang, bold, turkey, foster, geology, fossil, made up of, rubber, vacation, shall, stove, Saturday, automatic, spray, needle, trash, bush, farm, skin, spring, considerable, peculiar, ward, shape up, desert, bleed, flexible…</p><p>It was a random choice to spend my vacation in the northwest mountains this August. I stayed in a humble cabin made up of rubber, fiber, and concrete. The owner had managed to automate the place; the stove and fridge were automatic, though I had to plug in a wire to turn on the laser security system at sunset. Inside a drawer, I found a bundle of old tools: a needle, an ax, and a pair of socks hanging by the fire. Beside them was a piece of fossil only a few centimetres long. Beyond doubt, the property was famed for its geology. I spent my Saturday doing intensive arithmetic for a database project. The duration was long, but the straightforward task was a remedy for my exhausted mind. I felt like a famed explorer in a virtual world, even though I was simply a fellow looking for peace.</p><p>Article 2: Social Justice &amp; The Guardian (社会正义与卫报)<br>重点涵盖：The Guardian, federal, existing policy, crime, trial, subsidy, council, lobbyist, urge, resign, nasty, current, consensus, reinforce, supervision system, multicultural, mainland, decrease, minor accidents, orchestra, parade, refuse, suitable, following, exploit, struggle, federal, entertain, cause, simply, mean, consumer, characterize, ultimate, triple, captain, distinguish, mainland, humorous, kick around, hold up, scene, far, property, conscientious, circumstance, deem, bill, resign, current, report, council, lobbyist, trust, emphasis, mention, corps, existing policy…</p><p>The Guardian recently issued a report on existing policy regarding federal subsidy plans. The council held a trial to distinguish a suitable remedy from a selfish exploit of the law. A lobbyist tried to urge the captain to resign, calling his refusal to cooperate nasty. However, the current consensus was to reinforce the supervision system to prevent crime. On the mainland, there has been a considerable decrease in minor accidents during the multicultural parade, where a famous orchestra played a triple tune. Even when a clash in the league occurred, the corps was flexible enough to shape up. They would kick around new ideas to entertain the public, but the ultimate decision was to preserve the law and trust the process.</p><p>Article 3: The Confused Creature (惊魂记与意外)<br>重点涵盖：terrify sb. out of sb.’s wits, confused creature, overhear, amuse, torture, scene, geology, conscientious, circumstance, deem, peculiar, ward, obstacle, desert, bleed, nasty, vast, ahead, flexible, suit, appointment, think up, international concern, tune, certainly, chemistry, accent, pregnant, steak, latest, oral, worthy, weaken, motel, or else, northwest, draw on, thermometer, set about, alike, concrete, brilliant blue, conscious, illusion, strike, ugly, mean, simply, drawer, fridge, uninjured, dent, characterize, ultimate, muiticultural (multicultural)…</p><p>A confused creature—a small turkey—wandered into the courtyard, looking ugly and peculiar. I had overheard a rumour that such animals could be nasty. As a conscientious observer, I did not want to torture the bird. However, its sudden strike against the glass was an illusion of safety that terrified me out of my wits. In this circumstance, I had to think up a suitable plan to foster its safety and avoid a scene. The obstacle was its refusal to move toward the bush. Eventually, it became idle near the trash bin. I deemed it uninjured after it stopped bleeding from a small dent on its wing. The ultimate goal was to keep the creature safe until the following morning. It was a spectacular end to a peculiar day.</p><p style="text-align: right; font-size: 1.1em;">  The above articles were written by <strong style="background: linear-gradient(to right, #4285F4, #9B72CB); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">✦ Gemini</strong></p ><p>mention the words and phrase are as follows:<br>random,humble,automate,refusal,selfish,burn down,centimetre,illusion,pair,exhaust,exceed,clash,trial,strike,cycle,idle,beyond doubt,laser,possibly,sunset,ugly,fancy,arithmetic,virtual,wire,straightforward,intensive,ax,database,famed,inform,preserve,urge,present,courtyard,overhear,league,fiber,cause,turn on,drawer,simply,mean,fridge,a supervision system,consumer,August,accustomed,subsidy,uninjured,bundle,quarrel,supper,dent,characterize,sock,parade,ultimate,hang,multicultural,bold,triple,turkey,foster,captain,distinguish,mainland,orchestra,humorous,kick around,geology,hold up,amuse,torture,scene,far,fossil,property,made up of,hyphen,conscientious,own,rubber,circumstance,piece,vacation,shall,stove,criticism,Saturday,deem,confused creature,bill,resign,current,remedy,automatic,spray,spectacular,needle,form,trash,bush,report,decrease,council,lobbyist,trust,emphasis,plug in,duration,normally,mention,farm,skin,spring,considerable,corps,peculiar,ward,shape up,appoint,obstacle,terrify sb. out of sb.’swits,existing policy,desert,bleed,nasty,vast,ahead,flexible,minor accidents,reinforce,fellow,refuse,suitable,following,crime,The guardian,exploit,struggle,federal,entertain</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>证书考试</category>
+      
+      <category>英语四级</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>英语四级</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>day-1</title>
+    <link href="/2026/04/04/%E8%AF%81%E4%B9%A6%E8%80%83%E8%AF%95/%E8%8B%B1%E8%AF%AD%E5%9B%9B%E7%BA%A7/day-1/"/>
+    <url>/2026/04/04/%E8%AF%81%E4%B9%A6%E8%80%83%E8%AF%95/%E8%8B%B1%E8%AF%AD%E5%9B%9B%E7%BA%A7/day-1/</url>
+    
+    <content type="html"><![CDATA[<p>Article 1: The Collector’s Discovery (古玩店的奇遇)<br>【重点涵盖：】<br>antique, bachelor, beard, chemist, vinegar, strange sight, brilliant blue, glass, yard, orbit, axis, plain, stuff, cord, fairy, torch, specimen, brown patch, frank, mere, genuine, grasp, high-risk, boil over, tackle, compatible, stripe, obvious, cherish, monument.</p><p>【第一部分：意外的发现】<br>I once visited an antique shop in a quiet county. The owner, a bachelor with a long beard, was a chemist by profession but a collector by nature. As I entered, a strange sight caught my eye: a brilliant blue globe sitting on a glass yard table. He explained that it showed the orbit and axis of the Earth.</p><p>【第二部分：实验室的挑战】<br>The shop was plain but filled with stuff: a cord of fairy lights, a torch, and even a specimen of a brown patch butterfly. The owner was frank with me; he said some items were mere copies, but this globe was genuine. I tried to grasp the details, but he warned me it was high-risk to touch. Suddenly, a pot on his stove, filled with vinegar and pepper, began to boil over. He had to overtake the distance to the kitchen to tackle the mess. In his absence, I noticed the globe was compatible with a small stripe on the base. It was obvious he would cherish such a monument to science.</p><p>Article 2: Career and Social Trends (职场与社会趋势)<br>【重点涵盖：】<br>industry, global employment trends, manufacturer, bankrupt, negative, agency, accuse, contempt, nationality, prejudice, in no case, disable, campaigner, initiate, webcast, stimulate, consensus, insight, define, self-sufficient, sympathy, expense, loan, whereas, kneel, quota, insure, lay out, assist, dark, by and by, show up, accordingly, charter, coverage, temporary.</p><p>【第三部分：社会与职场】<br>In today’s industry, global employment trends are changing accordingly. A manufacturer might go bankrupt if they impose too many negative rules. For example, an agency might accuse a manager of contempt if they disapprove of a nationality or show prejudice. In no case should we disable the potential of a temporary worker.</p><p>【第四部分：尾声与细节】<br>A young campaigner decided to initiate a webcast to stimulate a consensus on labor rights. She had the insight to define what a self-sufficient workplace looks like. Her introduction was brilliant. She didn’t show off; instead, she spoke with sympathy for those under the expense of loan debts. Whereas some bosses kneel to profit, she stood for the quota of fairness. To insure success, she had to lay out a plan to assist those in dark times. She knew that by and by, people would show up to support her.</p><p>Article 3: Science and Daily Life (科技、自然与细节)<br>【重点涵盖：】<br>scientific, stream, as follows, petrol, soar, San Francisco, acid, dissolve, layer, poison, particular, nursing, preparation, doctoral, watertight, hazard, bury, stand in, sum, get down to business, presence, escape injury, grateful, twentieth, exhibit, concert, electronic music, feather, drag, vocabulary, suit, appointment, think up, international concern, tune, certainly, chemistry, accent, pregnant, steak, latest, oral, worthy, weaken, motel, or else, northwest, draw on, thermometer, set about, alike, concrete.</p><p>【补充遗漏的零散词汇：】<br>Scientific progress is like a stream; it flows as follows. A chemist in San Francisco found that a certain acid could dissolve a layer of poison. The preparation was worthy of a doctoral study. The lab was watertight to avoid any hazard. The team had to bury their fears and stand in for each other. One night, a rumour spread that petrol prices would soar, increasing their expense sum. They had to get down to business to find a formula (tune).</p><p>Despite the odd presence of a stranger, they remained conscious. In accordance with the charter, they would exhibit their results at the latest by the twentieth. They were grateful to escape injury. The coverage of their success was like a concert of electronic music. Outside, they decided to dump waste in a hole in the northwest. After a long day, they went to a motel to eat a steak and think up new ideas. The thermometer showed it was cold, but their genuine sympathy kept them warm.</p><p style="text-align: right; font-size: 1.1em;">  The above articles were written by <strong style="background: linear-gradient(to right, #4285F4, #9B72CB); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">✦ Gemini</strong></p ><p>mention the words and phrase are as follows:<br>petrol,soar,prejudice,polish,wheel,accordingly,insure,particular,as follows,loose,high-risk,erect,cover for,pepper,axis,intimate,by and by,attract,agency,cord,bachelor,accuse,a brown patch,boil over,in no case,odd,nursing,pose,specimen,behind the scenes,show up,plain,overtake,beard,twentieth,compatible,carry off,in store,go through,hole,exhibit,san francisco,earthy,dump,obvious,industry,stream,antique,yard,impose,tackle,webcast,glass,cherish,fair,grasp,initiate,stuff,concert,preparation,torch,stranger,keep from,layer,by nature,rumour,accordance,get down to business,charter,mere,coverage,contempt,negative,harbour,assist,nationality,scientific,temporary,electronic music,feather,drag,vocabulary,define,acid,escape injury,bankrupt,self-sufficient,county,manufacturer,asleep,frank,stand in,suit,loan,appointment,think up,sympathy,international concern,tune,stimulate,presence,consensus,certainly,chemistry,accent,stripe,vinegar,pregnant,a strange sight,monument,poison,steak,grateful,orbit,treat,dissolve,patch,doctoral,at the latest,lay out,dark,watertight,fairy,oral,hazard,worthy,weaken,motel,campaigner,chemist,whereas,or else,kneel,quota,expense,sum,insight,disable,bury,northwest,show off,draw on,genuine,thermometer,set about,introduction,disapprove,global employment trends,alike,concrete,brilliant blue,conscious</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>证书考试</category>
+      
+      <category>英语四级</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>英语四级</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>自恋使人困身孤岛</title>
+    <link href="/2026/04/03/%E4%B8%AA%E4%BA%BA%E5%86%99%E4%BD%9C/%E8%87%AA%E6%81%8B%E4%BD%BF%E4%BA%BA%E5%9B%B0%E8%BA%AB%E5%AD%A4%E5%B2%9B/"/>
+    <url>/2026/04/03/%E4%B8%AA%E4%BA%BA%E5%86%99%E4%BD%9C/%E8%87%AA%E6%81%8B%E4%BD%BF%E4%BA%BA%E5%9B%B0%E8%BA%AB%E5%AD%A4%E5%B2%9B/</url>
+    
+    <content type="html"><![CDATA[<p>  自恋是天生的！<br>呃呃呃暂时没时间写，等待更新吧…  </p>]]></content>
+    
+    
+    <categories>
+      
+      <category>个人写作</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>性格分析</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>自我与关系边界</title>
+    <link href="/2026/04/02/%E4%B8%AA%E4%BA%BA%E5%86%99%E4%BD%9C/%E8%87%AA%E6%88%91%E4%B8%8E%E5%85%B3%E7%B3%BB%E8%BE%B9%E7%95%8C/"/>
+    <url>/2026/04/02/%E4%B8%AA%E4%BA%BA%E5%86%99%E4%BD%9C/%E8%87%AA%E6%88%91%E4%B8%8E%E5%85%B3%E7%B3%BB%E8%BE%B9%E7%95%8C/</url>
+    
+    <content type="html"><![CDATA[<p>  在与女友闹掰的那个夜晚，我做了一个很舒服的梦，梦里我帮一个女孩脱离了困境。<br>  现实，当我在聊天界面上看见那条纯表情消息。我内心很煎熬，为什么她这么冷漠呢。我做错什么了么，我觉得有做错事情的地方都已经考虑到并在这之前解释了呀。反复的看手机，希望她继续发消息说明一下，不然我自己猜的话什么情况都有可能的呀。好纠结呀，我现在应该说什么呢。编辑好消息又删掉，怎么她还不发消息呢。唉算了，我还是直接问吧！我去，又回我表情是什么鬼。我有这么让她生气吗。哎呀这种情况该咋办呢。要是能面对面交流就好了，起码能看见对方的表情和态度。好纠结呀。。。好吧，既然你不想理我那我也不理你吧！咱们是俩小孩吗，唉。太冷漠了吧。。。我去，她似乎心情不太好。但是她又不给我说发生了什么，我根本不知道该咋回应怎么办。好吧，那心情不好对我冷淡也可以理解吧。欸不对呀，我怎么感觉她在通过冷漠对我散发怨气呢。唉我都说了很多次不要这样说话只说一半，真让人着急呀。这样的话我就只能受着这股负面情绪了呀，但是我们如果沟通的话就会好很多的。为什么总是记不住呢唉。算了吧，如果是这样的话我就不理她了。呵呵呵自己的女朋友怎么可能视而不见呢，但是我只能干着急呀。唉，好绝望。突然感觉好累是什么鬼。一点也不信任我，好吧！很气愤，我都不知道怎么在心里辩解她没有不信任我了。唉，好压抑。好焦虑，好绝望，以后也总要这样吗，感觉跟幸福生活不搭边啊。唉，鸭梨山大。<br>  梦里，帮助了一个女孩，很活泼可爱。其实我只是做了一个举动就帮助了她，最后她还告诉我了她的名字。梦很短，但是醒来就记不清了，名字也一同忘记了，印象中只觉得是一个很好听的名字。<br>  现实和梦境是如此矛盾。<br>  所以我睡醒后第一时间竟然有些错愕，为什么昨晚明明那么伤心，却做了这么轻松的梦而感到神清气爽呢。想着想着终于自觉不足，意识到其实自己一直是一个没有边界感的人。如果我的快乐只能建立在别人的不冷漠之上，那我还是我吗？我根本就没有维护好自我与外界的边界，所以才会以他人的反应来确认我的自我，把自己变成了一个反射他人行为的镜子。虽然这证明我的喜怒哀乐不是我产生的，但是我到底是在关心她还是在通过她的回应来确认我的存在感呢？我太自私了，其实那时的着急更多的是因为我自己无法处理那个不被回应的自我。要想拥有真正的自我应该首先做到分清界限，明白自我与他人的边界。其次就是要独立，不应该依附在他人身上。我还需要慢慢改正…话说还要多久才能成为一个圆呢？希望我们所拥有的关系都可以顺利度过1+1&#x3D;1，1+1&#x3D;0两个阶段，成功到达1+1&#x3D;2的阶段吧！</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>个人写作</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>自我边界</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  
+</search>

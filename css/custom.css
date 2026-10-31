@@ -1,0 +1,326 @@
+/* Palette and glass surfaces adapted from kiooo808/pickup. */
+:root {
+    --pickup-primary: #8b7edb;
+    --pickup-hover: #7a6bd0;
+    --pickup-soft: #ede9fe;
+    --pickup-gradient: linear-gradient(135deg, #f5f0ff, #ede8ff, #f0ebff, #e8e0ff, #f4efff);
+    --pickup-glass: rgba(255, 255, 255, .58);
+    --pickup-solid: #faf7ff;
+    --pickup-border: rgba(255, 255, 255, .85);
+    --pickup-inset: rgba(255, 255, 255, .9);
+    --pickup-shadow: 0 4px 16px rgba(139, 126, 219, .10);
+    --pickup-heading: linear-gradient(135deg, #6d5bd0, #a08adf, #8b7edb, #6d5bd0);
+}
+
+[data-user-color-scheme='dark'] {
+    --pickup-primary: #c6b5ff;
+    --pickup-hover: #ddcfff;
+    --pickup-soft: #40345d;
+    --pickup-gradient: linear-gradient(135deg, #211d35, #2c2444, #251f3c, #34264b, #211d35);
+    --pickup-glass: rgba(48, 39, 69, .78);
+    --pickup-solid: #2b2542;
+    --pickup-border: rgba(198, 181, 255, .18);
+    --pickup-inset: rgba(222, 207, 255, .10);
+    --pickup-heading: linear-gradient(135deg, #ded0ff, #b19ff5, #e4d8ff);
+}
+
+html { scroll-padding-top: 100px; }
+body {
+    isolation: isolate;
+    background: var(--pickup-gradient);
+    background-size: 400% 400%;
+    background-attachment: fixed;
+    animation: pickup-background 18s ease infinite;
+}
+
+body::before, body::after {
+    content: '';
+    position: fixed;
+    z-index: -1;
+    width: min(52vw, 540px);
+    height: min(52vw, 540px);
+    border-radius: 50%;
+    filter: blur(70px);
+    pointer-events: none;
+}
+body::before {
+    top: -140px;
+    left: -130px;
+    background: radial-gradient(circle, rgba(179, 157, 255, .48), transparent 70%);
+}
+body::after {
+    bottom: -160px;
+    right: -100px;
+    background: radial-gradient(circle, rgba(216, 180, 254, .42), transparent 70%);
+}
+
+@keyframes pickup-background {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+::selection { background: #dcd2ff; color: #2d2b45; }
+a:focus-visible, button:focus-visible {
+    outline: 3px solid var(--pickup-primary);
+    outline-offset: 4px;
+    border-radius: 6px;
+}
+
+#navbar, #navbar.top-nav-collapse {
+    top: 14px;
+    width: calc(100% - 32px);
+    max-width: 1200px;
+    margin-inline: auto;
+    padding: 10px 16px;
+    background: var(--pickup-glass);
+    border: 1px solid var(--pickup-border);
+    border-radius: 18px;
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    box-shadow: var(--pickup-shadow), inset 0 1px 0 var(--pickup-inset);
+}
+#navbar .container { padding-inline: 6px; }
+#navbar .navbar-brand {
+    color: var(--pickup-primary);
+    font-weight: 800;
+    letter-spacing: -.02em;
+}
+#navbar .nav-link { border-radius: 10px; padding-inline: .65rem; }
+#navbar .nav-link:hover, #navbar .nav-link.active {
+    background: var(--pickup-soft);
+    color: var(--pickup-hover);
+}
+#navbar .dropdown-menu, .modal-dialog .modal-content {
+    background: var(--pickup-glass);
+    border: 1px solid var(--pickup-border);
+    border-radius: 20px;
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    box-shadow: 0 18px 45px rgba(139, 126, 219, .20);
+}
+.modal-content .close { color: var(--pickup-primary); text-shadow: none; }
+.modal-header, .modal-footer { border-color: var(--line-color); }
+#local-search-input {
+    box-sizing: border-box;
+    border-radius: 12px;
+    border: 1px solid var(--line-color);
+    background: var(--pickup-glass);
+    color: var(--text-color);
+    padding: 10px 14px;
+}
+#local-search-input:focus { border-color: var(--pickup-primary); box-shadow: 0 0 0 3px rgba(139, 126, 219, .14); }
+#local-search-input + label { color: var(--pickup-primary); }
+#local-search-result .search-list-title { border-left-color: var(--pickup-primary); }
+#local-search-result .search-word { color: var(--pickup-hover); }
+
+.header-inner { min-height: 270px; max-height: none !important; }
+#banner { background: transparent !important; }
+#banner .mask { background: transparent !important; }
+.banner-text { padding-top: 60px; text-shadow: none; }
+.banner-text::before {
+    content: '✦';
+    display: block;
+    margin-bottom: 16px;
+    color: var(--pickup-primary);
+    font-size: 1.65rem;
+    opacity: .7;
+}
+#subtitle {
+    font-size: clamp(1.6rem, 3vw, 2.7rem);
+    line-height: 1.5;
+    font-weight: 800;
+    letter-spacing: -.025em;
+    color: var(--pickup-primary);
+    background: var(--pickup-heading);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.banner-text .post-meta { color: var(--sec-text-color); }
+.scroll-down-bar { color: var(--pickup-primary); }
+
+#board {
+    margin-top: -20px;
+    padding-block: 2.25rem;
+    border-radius: 24px;
+    background: var(--pickup-glass);
+    border: 1px solid var(--pickup-border);
+    box-shadow: var(--pickup-shadow), inset 0 1px 0 var(--pickup-inset);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+}
+
+/* The homepage uses individual glass cards; reading pages keep one quiet surface. */
+#board:has(.index-card) {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+#board:has(.index-card) > .container { padding: 0; }
+#board:has(.index-card) > .container > .row { margin: 0; }
+#board:has(.index-card) > .container > .row > .col-12 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    max-width: 100%;
+    flex-basis: 100%;
+    padding: 0;
+}
+.index-card {
+    width: 100%;
+    height: 100%;
+    margin: 0 !important;
+    padding: 24px;
+    border-radius: 20px;
+    background: var(--pickup-glass);
+    border: 1px solid var(--pickup-border);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    box-shadow: var(--pickup-shadow), inset 0 1px 0 var(--pickup-inset);
+    transition: transform .2s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.index-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(139, 126, 219, .4);
+    box-shadow: 0 12px 28px rgba(139, 126, 219, .18);
+}
+.index-info { padding: 0; min-width: 0; }
+.index-header { font-size: 1.3rem; line-height: 1.5; white-space: normal; margin-bottom: 12px; }
+.index-excerpt { color: var(--sec-text-color); margin-bottom: 20px; line-height: 1.8; }
+.index-btm { gap: 8px 0; font-size: .8rem; }
+.index-btm .post-meta { line-height: 1.7; }
+.index-btm .post-meta a { color: var(--pickup-primary); }
+.index-img { padding: 0 0 16px; max-width: 100%; flex-basis: 100%; }
+.index-img img { border-radius: 12px; box-shadow: none; }
+.index-card:has(.index-img) .index-info { flex-basis: 100%; max-width: 100%; }
+#board:has(.index-card) nav[aria-label='navigation'] { grid-column: 1 / -1; }
+
+.pagination .page-number, .pagination .extend {
+    border-radius: 12px;
+    border: 1px solid var(--pickup-border);
+    background: var(--pickup-glass);
+    box-shadow: var(--pickup-shadow);
+}
+.pagination .page-number.current {
+    background: linear-gradient(135deg, #9d8ff0, #8b7edb);
+    color: white;
+}
+.category-list .category {
+    border: 1px solid var(--pickup-border);
+    background: var(--pickup-glass);
+    border-radius: 14px;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+.category-list .category-item, .category-list .category-subitem { background: transparent; }
+.category-count { background: var(--pickup-soft); color: var(--pickup-primary); }
+.list-group-item { border-radius: 12px; }
+.list-group-item-action:hover { background: var(--pickup-soft); }
+.tagcloud a { border-radius: 12px; padding: 8px 14px; }
+.tagcloud a:hover { background: var(--pickup-soft); }
+.markdown-body { line-height: 1.9; background: transparent; }
+.markdown-body h1, .markdown-body h2 { border-color: var(--line-color); }
+.markdown-body blockquote, .note, .post-copyright {
+    border-radius: 12px;
+    border-color: var(--pickup-primary);
+    background: var(--pickup-soft);
+    color: var(--text-color);
+}
+.markdown-body :not(pre) > code { background: var(--pickup-soft); color: var(--pickup-hover); border-radius: 5px; }
+.markdown-body pre, .markdown-body figure.highlight { border-radius: 12px; }
+.markdown-body table tr { background: transparent; }
+.markdown-body table tr:nth-child(2n) { background: var(--pickup-soft); }
+.markdown-body img { border-radius: 12px; }
+.post-prevnext { border-radius: 12px; background: var(--pickup-soft); padding: 14px 8px; }
+.tocbot-active-link { color: var(--pickup-primary); }
+#scroll-top-button {
+    border: 1px solid var(--pickup-border);
+    border-radius: 14px;
+    background: var(--pickup-glass);
+    color: var(--pickup-primary);
+    box-shadow: var(--pickup-shadow);
+    backdrop-filter: blur(18px);
+}
+footer { color: var(--sec-text-color); }
+footer a { color: var(--pickup-primary); }
+#nprogress .bar { background: var(--pickup-primary) !important; }
+#nprogress .peg { box-shadow: 0 0 10px var(--pickup-primary), 0 0 5px var(--pickup-primary); }
+.blog-stats-grid { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 30px; }
+.blog-stat-card { flex: 1; min-width: 180px; padding: 20px; text-align: center; border-radius: 16px; background: var(--pickup-glass); border: 1px solid var(--pickup-border); box-shadow: var(--pickup-shadow); }
+.blog-stat-label { color: var(--sec-text-color); font-size: .9rem; }
+.blog-stat-value { color: var(--pickup-primary); font-size: 2rem; font-weight: 800; }
+.blog-stat-value span { font-size: 1rem; margin-left: 4px; }
+.blog-maintenance-note { background: var(--pickup-soft); border-left: 4px solid var(--pickup-primary); border-radius: 12px; padding: 15px; margin-top: 20px; font-size: .9rem; color: var(--text-color); }
+
+/* Match the mobile menu to pickup's translucent selection panel. */
+#mobile-grid-menu {
+    background: var(--pickup-glass);
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+}
+#mobile-grid-menu .mobile-grid-item {
+    border: 1px solid var(--pickup-border);
+    border-radius: 16px;
+    background: var(--pickup-glass);
+    color: var(--text-color);
+    box-shadow: var(--pickup-shadow);
+}
+#mobile-grid-menu .mobile-grid-item i { color: var(--pickup-primary); }
+
+@media (max-width: 767px) {
+    #navbar, #navbar.top-nav-collapse { top: 10px; width: calc(100% - 24px); padding: 8px 10px; }
+    #navbar .navbar-brand { font-size: 1.08rem; }
+    main > .container.nopadding-x-md { padding-left: 14px !important; padding-right: 14px !important; }
+    .header-inner { height: 300px !important; min-height: 280px; }
+    .banner-text { width: 90%; }
+    #board { border-radius: 20px; padding-block: 1.5rem; }
+    #board:has(.index-card) > .container > .row > .col-12 { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+    .index-card { padding: 20px; border-radius: 16px; }
+    .index-header { font-size: 1.15rem; }
+    .index-info { padding-top: 0; }
+    .post-content { padding-inline: 1.2rem; }
+    #board-ctn.nopadding-x-md { padding-left: 12px !important; padding-right: 12px !important; }
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+    #navbar, #board, .index-card, .modal-dialog .modal-content, #mobile-grid-menu { background: var(--pickup-solid); }
+    #board:has(.index-card) { background: transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+    body { animation: none; }
+    .index-card { transition: none; }
+    .index-card:hover { transform: none; }
+}
+@media print {
+    body { background: white; animation: none; }
+    body::before, body::after { display: none; }
+    #board { background: white; border: 0; box-shadow: none; backdrop-filter: none; }
+}
+
+/* Existing embedded Gist compatibility. */
+.gist .blob-code,
+.gist .blob-num,
+.gist table,
+.gist table tr,
+.gist table td {
+    background-color: transparent !important;
+}
+
+/* 2. 深度适配：针对 Fluid 暗黑模式强制文字变亮 */
+[data-user-color-scheme='dark'] .gist {
+    /* 核心逻辑：利用滤镜将黑色文字反转为白色，同时微调色相防止过载 */
+    filter: invert(0.9) hue-rotate(180deg);
+}
+
+/* 3. 如果滤镜导致代码高亮颜色变畸形，请改用以下颜色覆盖逻辑 */
+/*
+[data-user-color-scheme='dark'] .gist .blob-code,
+[data-user-color-scheme='dark'] .gist .blob-num {
+    color: #adbac7 !important; 
+}
+[data-user-color-scheme='dark'] .gist .pl-s { color: #96d0ff !important; } 
+[data-user-color-scheme='dark'] .gist .pl-k { color: #da70d6 !important; }
+*/
