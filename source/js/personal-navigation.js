@@ -52,6 +52,13 @@
           image.src = image.dataset.src;
           image.removeAttribute('data-src');
         });
+        // Fluid's srcset placeholder needs its observer on a full-page load.
+        // Loaded fragments instead show the real source immediately.
+        content.querySelectorAll('img[lazyload]').forEach(image => {
+          image.removeAttribute('srcset');
+          image.removeAttribute('lazyload');
+          image.loading = 'eager';
+        });
         const title = document.querySelector('.personal-site.site-hub h1')?.textContent || labels[route];
         const heading = window.document.createElement('div');
         heading.className = 'space-panel-heading';

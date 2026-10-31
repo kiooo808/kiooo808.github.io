@@ -17,6 +17,6 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm ci
-      - run: node --test tools/check-posts.test.cjs
+      - run: node --test tools/*.test.cjs
       - run: npm run build
       - run: npm run check:site

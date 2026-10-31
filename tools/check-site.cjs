@@ -19,6 +19,7 @@ let links = 0;
 for (const file of pages) {
   const html = read(file);
   assert(html.includes('class="personal-site'), `${file}: missing rendered personal-site layout`);
+  assert(html.indexOf('/js/time-color-scheme.js') >= 0 && html.indexOf('/js/time-color-scheme.js') < html.indexOf('/js/color-schema.js'), `${file}: time default must run before Fluid theme initialization`);
   for (const match of html.matchAll(/\bhref="([^"]+)"/g)) {
     const href = match[1].replaceAll('&amp;', '&');
     if (!href || /^(?:[a-z]+:|\/\/)/i.test(href)) continue;

@@ -16,9 +16,9 @@
   <p class="space-navigation-status sr-only" role="status" aria-live="polite"></p>
   <div id="space-content" class="space-view" data-search-index="<%= url_for(theme.search.path) %>"><div class="space-view-inner" data-section="home">
   <div class="space-home-feed">
-    <section class="space-section space-featured" aria-labelledby="projects-heading">
-      <div class="space-section-heading"><h2 id="projects-heading">项目</h2><a href="<%= url_for('/projects/') %>">全部 ↗</a></div>
-      <%- partial('personal-project-cards', { projects: page.personal.projects }) %>
+    <section class="space-section space-featured" aria-labelledby="focus-heading">
+      <div class="space-section-heading"><h2 id="focus-heading">近期关注</h2><time class="space-focus-updated" datetime="<%= page.personal.focus_updated %>"><%= page.personal.focus_updated.slice(5).replace('-', '.') %> 更新</time></div>
+      <div class="space-focus-list"><% page.personal.recent_focus.forEach((focus, index) => { %><article class="space-focus-item"><span class="space-focus-number" aria-hidden="true">0<%= index + 1 %></span><div><h3><%= focus.title %></h3><p><%= focus.description %></p><div class="space-tags"><% focus.tags.forEach(tag => { %><span><%= tag %></span><% }) %></div></div></article><% }) %></div>
     </section>
     <section class="space-section space-recent" aria-labelledby="recent-heading">
       <div class="space-section-heading"><h2 id="recent-heading">最近更新</h2><a href="<%= url_for('/archives/') %>">归档 ↗</a></div>

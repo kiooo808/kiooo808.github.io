@@ -1,9 +1,10 @@
 ---
 title: about
 date: 2026-04-03 20:02:12
+lazyload: false
 ---
 
-<img src="/about/a1.jpg" width="150px" style="border-radius: 50%; display: block; margin: 0 auto 30px auto;">
+<img class="about-avatar-photo" src="/about/a1.jpg" width="150" height="150" alt="kiooo808 的头像" loading="eager">
 
 <div style="
   text-align: center;
