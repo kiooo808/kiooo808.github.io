@@ -18,15 +18,56 @@ async function recoverStalePages(
     headers: { "Cache-Control": "no-cache" },
     signal: AbortSignal.timeout(15000),
   });
-  if (!live.ok) return null;
+  console.log(`Pages recovery: live revision request HTTP ${live.status}.`);
+  if (live.status === 404) return null;
+  if (!live.ok)
+    throw new Error(`Cannot verify live revision (HTTP ${live.status}).`);
   const revision = await live.json();
   if (!/^[0-9a-f]{40}$/.test(revision.commit)) return null;
+  console.log(`Pages recovery: current live source ${revision.commit}.`);
   const response = await api("/actions/runs?branch=gh-pages&per_page=100");
   if (!response.ok)
     throw new Error(
       `Cannot inspect completed Pages deployments (HTTP ${response.status}).`,
     );
-  const runs = (await response.json()).workflow_runs
+  const allRuns = (await response.json()).workflow_runs;
+  async function reportedBlocker(run) {
+    const sha = run.head_sha;
+    const failures = allRuns
+      .slice(0, allRuns.indexOf(run))
+      .filter(
+        (r) =>
+          names.includes(r.name) &&
+          r.status === "completed" &&
+          r.conclusion === "failure" &&
+          Number.isSafeInteger(r.id),
+      )
+      .slice(0, 3);
+    for (const failure of failures) {
+      const result = await api(`/actions/runs/${failure.id}/jobs`);
+      if (!result.ok)
+        throw new Error(
+          `Cannot inspect failed Pages jobs (HTTP ${result.status}).`,
+        );
+      const job = (await result.json()).jobs.find(
+        (j) =>
+          j.name === "deploy" &&
+          j.status === "completed" &&
+          j.conclusion === "failure" &&
+          Number.isSafeInteger(j.id),
+      );
+      if (!job) continue;
+      const logs = await api(`/actions/jobs/${job.id}/logs`);
+      if (!logs.ok)
+        throw new Error(
+          `Cannot inspect Pages failure reason (HTTP ${logs.status}).`,
+        );
+      if ((await logs.text()).includes(`Please cancel ${sha} first`))
+        return true;
+    }
+    return false;
+  }
+  const runs = allRuns
     .filter(
       (r) =>
         names.includes(r.name) &&
@@ -56,22 +97,25 @@ async function recoverStalePages(
         `Cannot inspect previous Pages status (HTTP ${state.status}).`,
       );
     const status = (await state.json()).status;
+    console.log(
+      `Pages recovery: completed artifact ${run.head_sha} reports ${JSON.stringify(status)}.`,
+    );
     if (typeof status !== "string")
       throw new Error("Missing previous Pages status; refusing cancellation.");
-    if (
-      ![
-        "",
-        "deployment_queued",
-        "deployment_pending",
-        "deployment_in_progress",
-        "queued",
-        "pending",
-        "in_progress",
-      ].includes(status)
-    )
+    const pending = [
+      "",
+      "deployment_queued",
+      "deployment_pending",
+      "deployment_in_progress",
+      "queued",
+      "pending",
+      "in_progress",
+    ].includes(status);
+    if (!pending && !(status === "succeed" && (await reportedBlocker(run))))
       return null;
     // Only a completed successful workflow whose artifact is already live is eligible.
-    // Never cancel a running workflow, an unrelated artifact, or a normally finished deployment.
+    // A successful status also needs an explicit matching blocker in a newer failed job.
+    // Running workflows and unrelated artifacts are never eligible.
     const cancelled = await api(
       `/pages/deployments/${run.head_sha}/cancel`,
       "POST",
