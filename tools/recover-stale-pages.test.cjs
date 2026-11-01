@@ -15,6 +15,7 @@ function service({
   matches = true,
   running = false,
   blockingSha,
+  cancelStatus = 204,
 } = {}) {
   const requests = [];
   const fetch = async (url, init = {}) => {
@@ -73,7 +74,13 @@ function service({
       return new Response(
         `Deployment refused. Please cancel ${blockingSha} first or wait for it to complete.`,
       );
-    if (url.endsWith("/cancel")) return new Response(null, { status: 204 });
+    if (url.endsWith("/cancel"))
+      return cancelStatus === 204
+        ? new Response(null, { status: 204 })
+        : Response.json(
+            { message: "Cannot cancel a completed deployment." },
+            { status: cancelStatus },
+          );
     if (url.endsWith("/pages/deployments/" + old))
       return Response.json({ status });
     throw new Error("Unexpected request " + url);
@@ -155,4 +162,9 @@ test("an older failure cannot override a newer successful deployment status", as
       : s.fetch(url, init);
   assert.equal(await recoverStalePages(options, { fetch }), null);
   assert.equal(s.requests.filter((x) => x[1] === "POST").length, 0);
+});
+test("a provider refusal to cancel completed state cannot permanently block normal deployment", async () => {
+  const s = service({ status: "succeed", blockingSha: old, cancelStatus: 400 });
+  assert.equal(await recoverStalePages(options, s), null);
+  assert.equal(s.requests.filter((x) => x[1] === "POST").length, 1);
 });
