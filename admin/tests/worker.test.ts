@@ -15,6 +15,7 @@ let mf: Miniflare,
   prs: any[] = [];
 let check = "success",
   deploy = "success",
+  pages = "success",
   live = "",
   main = "base-main",
   n = 0,
@@ -43,6 +44,24 @@ async function remote(request: any) {
   if (url.pathname.includes("/access_tokens"))
     return json({ token: "fake-installation-token" });
   if (p === "/git/ref/heads/main") return json({ object: { sha: main } });
+  if (p === "/git/ref/heads/gh-pages")
+    return json({ object: { sha: "pages-head" } });
+  if (p === "/contents/revision.json")
+    return json({
+      content: Buffer.from(JSON.stringify({ commit: main })).toString("base64"),
+    });
+  if (p === "/actions/runs")
+    return json({
+      workflow_runs: [
+        {
+          id: 3,
+          name: "pages-build-deployment",
+          head_sha: "pages-head",
+          status: pages === "pending" ? "in_progress" : "completed",
+          conclusion: pages,
+        },
+      ],
+    });
   if (p.startsWith("/compare/")) return json({ status: "ahead" });
   if (p.startsWith("/contents/")) {
     const key = decodeURIComponent(p.slice(10)),
@@ -147,6 +166,10 @@ async function remote(request: any) {
     deploy = "success";
     return new Response(null, { status: 201 });
   }
+  if (p === "/actions/runs/3/rerun-failed-jobs") {
+    pages = "success";
+    return new Response(null, { status: 201 });
+  }
   throw new Error(
     "Unexpected network request " + request.method + " " + url.href,
   );
@@ -236,6 +259,7 @@ beforeEach(async () => {
   main = "base-main";
   check = "success";
   deploy = "success";
+  pages = "success";
   live = "";
   requests = [];
   oauthUser = { id: 1, login: "kiooo808" };
@@ -248,7 +272,7 @@ function request(
 ) {
   return mf.dispatchFetch("https://studio.test/api" + path, {
     method,
-    redirect:'manual',
+    redirect: "manual",
     headers: {
       Cookie: "studio_session=test-session",
       Origin: "https://studio.test",
@@ -574,6 +598,38 @@ test("deployment retry reuses merged content instead of creating a second commit
   await tick();
   assert.equal((await job(p.id)).status, "published");
 });
+test("downstream Pages failure is reported and retried without another content commit", async () => {
+  const d = await create();
+  const p = (await (
+    await request("/publications", "POST", { draftId: d.id, version: 1 })
+  ).json()) as any;
+  await waitFor(p.id, "checking");
+  await tick();
+  await tick();
+  pages = "failure";
+  await tick();
+  assert.equal((await job(p.id)).status, "failed");
+  assert.match((await job(p.id)).error, /GitHub Pages/);
+  const originalMain = main;
+  const retried = (await (
+    await request("/publications", "POST", {
+      draftId: d.id,
+      version: 1,
+      retry: true,
+    })
+  ).json()) as any;
+  assert.equal(retried.id, p.id);
+  assert.ok(requests.includes("POST /actions/runs/3/rerun-failed-jobs"));
+  live = main;
+  for (let i = 0; i < 30 && (await job(p.id)).status !== "published"; i++) {
+    await tick();
+    await new Promise((r) => setTimeout(r, 20));
+  }
+  await waitFor(p.id, "published");
+  assert.equal(main, originalMain);
+  assert.equal(prs.length, 1);
+});
+
 test("OAuth rejects other accounts and issues a secure owner session without exposing tokens", async () => {
   async function login() {
     const start = await request("/auth/login"),

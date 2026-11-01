@@ -18,6 +18,40 @@ export async function updateJob(
     .bind(...entries.map(([, v]) => v), id)
     .run();
 }
+async function pagesRun(env: Env, job: Publication) {
+  const ref = await gh(env, "/git/ref/heads/gh-pages");
+  const file = await gh(
+    env,
+    `/contents/revision.json?ref=${encodeURIComponent(ref.object.sha)}`,
+  );
+  const revision = JSON.parse(atob(file.content.replace(/\s/g, "")));
+  if (revision.commit !== job.merge_sha) {
+    if (!/^[0-9a-f]{40}$/.test(revision.commit)) return;
+    const comparison = await gh(
+      env,
+      `/compare/${job.merge_sha}...${revision.commit}`,
+    );
+    if (!["ahead", "identical"].includes(comparison.status)) return;
+    const { generated } = await prepareFiles(
+      env,
+      JSON.parse(job.payload),
+      job.draft_id,
+    );
+    if (
+      (await readFile(env, generated.path, revision.commit)).source !==
+      generated.source
+    )
+      return;
+  }
+  const runs = await gh(
+    env,
+    `/actions/runs?head_sha=${encodeURIComponent(ref.object.sha)}&per_page=100`,
+  );
+  return runs.workflow_runs.find(
+    (run: any) =>
+      run.name === "pages-build-deployment" && run.head_sha === ref.object.sha,
+  );
+}
 export async function createPublication(
   env: Env,
   id: string,
@@ -47,9 +81,18 @@ export async function createPublication(
       env,
       `/actions/workflows/deploy.yml/runs?head_sha=${existing.merge_sha}&event=push`,
     );
-    const run = runs.workflow_runs[0];
+    const run = runs.workflow_runs.find(
+      (r: any) => r.head_sha === existing.merge_sha,
+    );
     if (run?.status === "completed" && run.conclusion !== "success")
       await gh(env, `/actions/runs/${run.id}/rerun-failed-jobs`, "POST");
+    else if (run?.conclusion === "success") {
+      const pages = await pagesRun(env, existing);
+      if (pages?.status === "completed" && pages.conclusion !== "success")
+        await gh(env, `/actions/runs/${pages.id}/rerun-failed-jobs`, "POST");
+      await updateJob(env, existing.id, { status: "verifying", error: null });
+      return { ...existing, status: "verifying", error: null };
+    }
     await updateJob(env, existing.id, { status: "deploying", error: null });
     return { ...existing, status: "deploying", error: null };
   }
@@ -261,8 +304,9 @@ export async function advance(env: Env, job: Publication) {
       env.SITE_URL + "/revision.json?studio=" + job.id,
       { headers: { "Cache-Control": "no-cache" } },
     );
-    if (!response.ok) return;
-    const revision = (await response.json()) as { commit: string };
+    const revision = response.ok
+      ? ((await response.json()) as { commit: string })
+      : { commit: "" };
     if (revision.commit === job.merge_sha) {
       await complete(env, job, revision.commit);
       return;
@@ -274,16 +318,24 @@ export async function advance(env: Env, job: Publication) {
         env,
         `/compare/${job.merge_sha}...${revision.commit}`,
       );
-      if (!["ahead", "identical"].includes(comparison.status)) return;
-      const { generated } = await prepareFiles(env, content, job.draft_id);
-      const actual = await readFile(env, generated.path, revision.commit);
-      if (actual.source !== generated.source)
-        throw new HttpError(
-          409,
-          "后续更新已修改这份内容，请打开网站核对并重新载入。",
-        );
-      await complete(env, job, revision.commit);
+      if (["ahead", "identical"].includes(comparison.status)) {
+        const { generated } = await prepareFiles(env, content, job.draft_id);
+        const actual = await readFile(env, generated.path, revision.commit);
+        if (actual.source !== generated.source)
+          throw new HttpError(
+            409,
+            "后续更新已修改这份内容，请打开网站核对并重新载入。",
+          );
+        await complete(env, job, revision.commit);
+        return;
+      }
     }
+    const pages = await pagesRun(env, job);
+    if (pages?.status === "completed" && pages.conclusion !== "success")
+      throw new HttpError(
+        502,
+        "GitHub Pages 发布失败，网站尚未更新。可重试同一版本，无需再次提交文章。",
+      );
   }
 }
 export async function processQueue(env: Env) {

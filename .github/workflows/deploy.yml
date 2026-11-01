@@ -20,6 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: read
     steps:
       - uses: actions/checkout@v4
       - name: Check that this is still the current main revision
@@ -44,3 +45,9 @@ jobs:
           publish_dir: ./public
           publish_branch: gh-pages
           force_orphan: true
+      - name: Wait for GitHub Pages and verify the live revision
+        if: steps.current.outputs.deploy == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SITE_URL: https://kiooo808.github.io
+        run: node tools/wait-for-pages.cjs
