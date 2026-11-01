@@ -49,7 +49,8 @@ async function pagesRun(env: Env, job: Publication) {
   );
   return runs.workflow_runs.find(
     (run: any) =>
-      run.name === "pages-build-deployment" && run.head_sha === ref.object.sha,
+      ["pages-build-deployment", "pages build and deployment"].includes(run.name) &&
+      run.head_sha === ref.object.sha,
   );
 }
 export async function createPublication(
