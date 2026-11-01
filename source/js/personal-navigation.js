@@ -13,6 +13,7 @@
   let generation = 0;
   let currentRoute = '';
   let searchIndex;
+  let searchQuery = '';
 
   function routeOf(url) {
     if (url.origin !== location.origin) return null;
@@ -41,7 +42,7 @@
   async function load(route) {
     if (!cache.has(route)) {
       const promise = (async () => {
-        const response = await fetch('/' + route + '/', { credentials: 'same-origin' });
+        const response = await fetch('/' + route + '/', { credentials: 'same-origin', cache: 'no-cache' });
         if (!response.ok) throw new Error('Page unavailable');
         const document = new DOMParser().parseFromString(await response.text(), 'text/html');
         const source = document.querySelector('.personal-site.site-hub') || (route === 'about' && document.querySelector('#board .page-content, #board .markdown-body, #board .about-content'));
@@ -145,7 +146,7 @@
 
   async function getSearchIndex() {
     if (!searchIndex) {
-      searchIndex = fetch(view.dataset.searchIndex).then(async response => {
+      searchIndex = fetch(view.dataset.searchIndex, { cache: 'no-cache' }).then(async response => {
         if (!response.ok) throw new Error('Search unavailable');
         const xml = new DOMParser().parseFromString(await response.text(), 'application/xml');
         return [...xml.querySelectorAll('entry')].map(entry => {
@@ -164,8 +165,9 @@
     const results = inner.querySelector('.space-search-results');
     const message = inner.querySelector('.space-search-status');
     let version = 0;
-    input.addEventListener('input', async () => {
+    async function updateResults() {
       const request = ++version;
+      searchQuery = input.value;
       const words = input.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
       results.replaceChildren();
       if (!words.length) { message.textContent = '输入关键词，查找站内内容。'; return; }
@@ -189,7 +191,10 @@
       } catch (_) {
         if (request === version && inner.isConnected) message.textContent = '搜索暂时不可用，请稍后再试。';
       }
-    });
+    }
+    input.addEventListener('input', updateResults);
+    input.value = searchQuery;
+    if (searchQuery) updateResults();
   }
 
   navigation.addEventListener('click', event => {

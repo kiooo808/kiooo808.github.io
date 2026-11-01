@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const root = path.join(__dirname, '..', 'public');
-const pages = ['index.html', 'projects/index.html', 'projects/englishapp/index.html', 'knowledge/index.html', 'blog/index.html', 'diary/index.html'];
+const pages = ['index.html', 'projects/index.html', 'projects/englishapp/index.html', 'knowledge/index.html', 'blog/index.html', 'diary/index.html', 'statistics/index.html'];
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const hash = filename => crypto.createHash('sha256').update(fs.readFileSync(filename)).digest('hex');
 function files(directory, prefix = '') {
@@ -44,6 +44,9 @@ const indexedUrls = [...read('local-search.xml').matchAll(/<url>([^<]+)<\/url>/g
 for (const url of indexedUrls) {
   assert(collectionHtml.includes(`href="${url}"`), `published record absent from content sections: ${url}`);
 }
+const statisticsTotal = read('statistics/index.html').match(/class="blog-stat-value">(\d+)<span>篇/);
+assert(statisticsTotal, 'statistics must render the live published-post total');
+assert.equal(Number(statisticsTotal[1]), indexedUrls.length, 'statistics must match the published search index');
 
 let oldFiles = 0;
 if (process.argv[2]) {
@@ -56,4 +59,4 @@ if (process.argv[2]) {
     oldFiles++;
   }
 }
-console.log(`Site checks passed: ${pages.length} new pages, ${links} local links/anchors, ${indexedUrls.length} records in content sections, ${oldFiles} original URLs retained.`);
+console.log(`Site checks passed: ${pages.length} checked pages, ${links} local links/anchors, ${indexedUrls.length} records in content sections, ${oldFiles} original URLs retained.`);
