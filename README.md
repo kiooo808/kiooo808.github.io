@@ -2,7 +2,7 @@
 
 ## 个人空间（第一、二阶段）
 
-首页是个人介绍、四个内容入口、真实项目、知识地图和最近 4 条更新。
+首页包含个人介绍、八个常驻入口、近期关注、知识地图和最近 4 条更新。
 
 首页的导航在同一页面内切换项目、知识库、博客、日记、关于和搜索区域；标题及导航保留，内容轻柔淡入。地址中的 `#blog`、`#knowledge` 等用于恢复当前分区，支持刷新与浏览器前进/后退；旧的独立页面地址仍可直接访问。开启减少动态效果时停用切换动画。明暗模式按钮使用「亮色／暗黑」命名。
 
@@ -40,7 +40,7 @@ npm run check:site
 
 可用 `node tools/check-site.cjs <改版前的 public 目录>` 检查原有 URL 和静态附件是否保留。构建仍使用原有 `npm run build`，部署流程保持 `main` → GitHub Actions → `gh-pages` → GitHub Pages。合并改版分支后自动部署，无需更换 Pages 设置。
 
-后续阶段再增加知识库章节前后导航及 Markdown 导入/发布后台；当前没有登录或仓库写入功能。
+在线内容工作台已经加入 `admin/`：可视化写作、Markdown 导入导出、私密草稿、附件、首页表单与发布任务。使用及 Cloudflare/GitHub App 配置见 [工作台说明](admin/README.md)。未配置线上账户前，仅使用本地演示，网站继续保留当前阅读入口。知识库章节前后导航仍留待后续。
 
 ## 在 GitHub 上传日记
 
@@ -84,3 +84,8 @@ node --test tools/check-posts.test.cjs
 npm run clean
 npm run build
 ```
+
+
+## 统一发布检查
+
+`npm run verify:site` 执行文章测试、配色测试、完整构建、链接与 81 个原地址检查。PR 与 main 发布共用 `.github/workflows/verify.yml`，包含工作台构建和后台测试。通过检查的同一份站点产物才可部署到原 gh-pages。旧 `pub` 与本地 `deploy` 快捷命令已移除。`content-manifest.json` 用于后台识别原文章地址，`revision.json` 用于核对实际上线版本。

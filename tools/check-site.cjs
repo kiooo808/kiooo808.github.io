@@ -48,7 +48,9 @@ const statisticsTotal = read('statistics/index.html').match(/class="blog-stat-va
 assert(statisticsTotal, 'statistics must render the live published-post total');
 assert.equal(Number(statisticsTotal[1]), indexedUrls.length, 'statistics must match the published search index');
 
-let oldFiles = 0;
+const retainedUrls = require('./legacy-urls.json');
+for (const relative of retainedUrls) assert(fs.existsSync(path.join(root, relative)), `lost original URL: ${relative}`);
+let oldFiles = retainedUrls.length;
 if (process.argv[2]) {
   const baseline = path.resolve(process.argv[2]);
   for (const relative of files(baseline)) {
@@ -56,7 +58,6 @@ if (process.argv[2]) {
     if (relative.startsWith('apps' + path.sep) || !/\.(?:html|css|js|xml)$/i.test(relative)) {
       assert.equal(hash(path.join(root, relative)), hash(path.join(baseline, relative)), `original asset changed: ${relative}`);
     }
-    oldFiles++;
   }
 }
 console.log(`Site checks passed: ${pages.length} checked pages, ${links} local links/anchors, ${indexedUrls.length} records in content sections, ${oldFiles} original URLs retained.`);

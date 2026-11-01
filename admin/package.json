@@ -1,0 +1,35 @@
+{
+  "name": "myblog-studio",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --ip 127.0.0.1 --port 8787",
+    "build": "tsc --noEmit && vite build",
+    "seed": "node tools/seed-local.mjs",
+    "test": "tsx --test tests/*.test.ts",
+    "deploy": "node tools/check-production.mjs && npm run build && npm test && wrangler deploy --env production"
+  },
+  "dependencies": {
+    "@milkdown/crepe": "^7.17.3",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "yaml": "^2.8.1",
+    "marked": "^16.4.1",
+    "dompurify": "^3.3.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20261101.1",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@types/node": "^24.10.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.0",
+    "wrangler": "^4.45.0",
+    "tsx": "^4.20.6",
+    "miniflare": "5.20261023.3-beta",
+    "esbuild": "^0.25.11"
+  },
+  "overrides": {
+    "katex": "^0.19.1"
+  }
+}
