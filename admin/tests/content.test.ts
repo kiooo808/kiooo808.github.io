@@ -21,7 +21,10 @@ function walk(dir: string): string[] {
 }
 test("all existing Markdown posts retain metadata, bodies and identity when opened and saved", () => {
   const files = walk(posts).filter((file) => file.endsWith(".md"));
-  assert.equal(files.length, 13);
+  assert.ok(
+    files.length > 0,
+    "round-trip every current article; the collection may grow",
+  );
   for (const file of files) {
     const source = readFileSync(file, "utf8");
     const value = readContent({
@@ -79,7 +82,9 @@ test("homepage updates preserve topics, exclusions, comments and unrelated field
   });
   assert.equal(value.kind, "home");
   if (value.kind !== "home") return;
-  value.data.recent_focus[0].title = "Updated";
+  value.data.recent_focus = [
+    { title: "Updated", description: "Updated focus", tags: [] },
+  ];
   const next = serializeContent(value, "unused");
   const parsed = readContent({
     path: next.path,
