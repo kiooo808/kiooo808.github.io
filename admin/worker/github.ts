@@ -2,6 +2,44 @@ import { Env, HttpError } from "./types";
 import { b64 } from "./auth";
 import { Base, HOME_PATH, allowedPath } from "../shared/content";
 const encoder = new TextEncoder();
+export function privateKeyBytes(pem: string) {
+  const text = pem.replaceAll("\\n", "\n");
+  if (text.length > 20000 || !/-----BEGIN (?:RSA )?PRIVATE KEY-----/.test(text))
+    throw new HttpError(
+      503,
+      "应用私钥格式不正确，请使用 MyBlog GitHub App 下载的 PEM 文件。",
+    );
+  const bytes = Uint8Array.from(
+    atob(text.replace(/-----[^-]+-----|\s/g, "")),
+    (x) => x.charCodeAt(0),
+  );
+  if (!text.includes("BEGIN RSA PRIVATE KEY")) return bytes;
+  const length = (n: number) =>
+    n < 128 ? [n] : n < 256 ? [129, n] : [130, n >> 8, n & 255];
+  const octet = [4, ...length(bytes.length), ...bytes];
+  const payload = [
+    2,
+    1,
+    0,
+    48,
+    13,
+    6,
+    9,
+    42,
+    134,
+    72,
+    134,
+    247,
+    13,
+    1,
+    1,
+    1,
+    5,
+    0,
+    ...octet,
+  ];
+  return new Uint8Array([48, ...length(payload.length), ...payload]);
+}
 let cached: { key: string; token: string; until: number } | undefined;
 async function installationToken(env: Env) {
   const key = env.GITHUB_APP_ID + ":" + env.GITHUB_INSTALLATION_ID;
@@ -25,10 +63,7 @@ async function installationToken(env: Env) {
         }),
       ),
     );
-  const bytes = Uint8Array.from(
-    atob(env.GITHUB_PRIVATE_KEY.replace(/-----[^-]+-----|\s/g, "")),
-    (x) => x.charCodeAt(0),
-  );
+  const bytes = privateKeyBytes(env.GITHUB_PRIVATE_KEY);
   const privateKey = await crypto.subtle.importKey(
     "pkcs8",
     bytes,

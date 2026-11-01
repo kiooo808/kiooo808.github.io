@@ -88,7 +88,15 @@ export async function api(request: Request, env: Env, ctx: ExecutionContext) {
   if (path === "/api/config")
     return json({
       demo: demo(env, url),
-      configured: !!(env.GITHUB_CLIENT_ID && env.OWNER_ID),
+      configured: !!(
+        env.GITHUB_CLIENT_ID &&
+        env.GITHUB_CLIENT_SECRET &&
+        env.OWNER_ID &&
+        env.PUBLIC_ORIGIN &&
+        env.GITHUB_APP_ID &&
+        env.GITHUB_INSTALLATION_ID &&
+        env.GITHUB_PRIVATE_KEY
+      ),
       owner: env.OWNER_LOGIN,
       site: env.SITE_URL,
     });

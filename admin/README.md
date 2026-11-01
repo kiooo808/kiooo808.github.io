@@ -34,9 +34,9 @@ npm run dev --prefix admin
 | `GITHUB_INSTALLATION_ID` | App 安装到仓库时的安装 ID |
 | `GITHUB_CLIENT_ID` | App Client ID |
 | `GITHUB_CLIENT_SECRET` | App Client Secret |
-| `GITHUB_PRIVATE_KEY` | App 生成的完整 PKCS#8 PEM 私钥，保留真实换行 |
+| `GITHUB_PRIVATE_KEY` | App 下载的完整 PEM 私钥，支持 PKCS#1 和 PKCS#8，保留换行 |
 
-`OWNER_LOGIN` 与仓库名已在 production 配置中固定。若下载的私钥为 `BEGIN RSA PRIVATE KEY`，在可信本机用 `openssl pkcs8 -topk8 -nocrypt -in <原私钥> -out <PKCS8私钥>` 转换后再输入；两份私钥均不要进入仓库。
+`OWNER_LOGIN` 与仓库名已在 production 配置中固定。GitHub 下载的 `BEGIN RSA PRIVATE KEY` 可直接使用，后台会在服务端转换为 WebCrypto 所需格式，无需另存一份转换后的密钥。私钥不要进入仓库。所有必需配置齐全后，后台才显示登录入口可用。
 
 7. 执行 `npx wrangler d1 migrations apply DB --remote --env production`，然后执行 `npm run deploy`。部署脚本会核对正式数据库 ID、所需 secret 名称、构建和测试，并阻止将演示配置部署到线上。
 8. 登录后先发布一篇明确标为测试用途的文章。检查记录须依次经历排队、检查、部署、上线核对，最终显示“已上线”。验证图片/PDF、手机编辑，以及一次更新后的“恢复上一版为草稿”。测试内容需要通过普通内容更新流程处理，不要重写仓库历史。
