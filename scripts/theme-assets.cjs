@@ -13,7 +13,11 @@ hexo.extend.filter.register('before_generate', function () {
 });
 
 hexo.extend.filter.register('after_render:html', function (html) {
+  // Fluid declares its default touch icon as 76px; this site supplies a 180px icon.
   return html.replace(
+    /(<link\b(?=[^>]*\brel=["']apple-touch-icon["'])[^>]*\bsizes=["'])76x76(["'])/g,
+    (_, prefix, quote) => `${prefix}180x180${quote}`
+  ).replace(
     /(<link\b[^>]*\bhref=["'])([^"']*\/css\/(?:main|custom)\.css)(["'])/g,
     (_, prefix, url, quote) => `${prefix}${url}?v=${version}${quote}`
   ).replace(
