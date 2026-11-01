@@ -78,3 +78,10 @@ test("completed workflows with a stuck pending Pages status can be recovered", a
   const s = service({ status: "deployment_in_progress" });
   assert.equal(await recoverStalePages(options, s), old);
 });
+test("unreadable Pages status cannot authorize cancellation", async () => {
+  const s = service();
+  const fetch = async (url, init) => url.endsWith('/pages/deployments/'+old)
+    ? Response.json({}) : s.fetch(url,init);
+  await assert.rejects(recoverStalePages(options,{fetch}),/refusing cancellation/);
+  assert.equal(s.requests.filter(x=>x[1]==='POST').length,0);
+});

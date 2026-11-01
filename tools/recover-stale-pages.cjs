@@ -56,10 +56,10 @@ async function recoverStalePages(
         `Cannot inspect previous Pages status (HTTP ${state.status}).`,
       );
     const status = (await state.json()).status;
+    if (typeof status !== "string")
+      throw new Error("Missing previous Pages status; refusing cancellation.");
     if (
       ![
-        undefined,
-        null,
         "",
         "deployment_queued",
         "deployment_pending",
