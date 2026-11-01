@@ -48,7 +48,11 @@ async function remote(request: any) {
     return json({ object: { sha: "pages-head" } });
   if (p === "/contents/revision.json")
     return json({
-      content: Buffer.from(JSON.stringify({ commit: main })).toString("base64"),
+      content: Buffer.from(
+        JSON.stringify({
+          commit: deploy === "failure" ? "older-artifact" : main,
+        }),
+      ).toString("base64"),
     });
   if (p === "/actions/runs")
     return json({
@@ -166,7 +170,9 @@ async function remote(request: any) {
     deploy = "success";
     return new Response(null, { status: 201 });
   }
-  if (p === "/actions/runs/3/rerun-failed-jobs") {
+  if (
+    ["/actions/runs/3/rerun-failed-jobs", "/actions/runs/3/rerun"].includes(p)
+  ) {
     pages = "success";
     return new Response(null, { status: 201 });
   }
@@ -627,6 +633,36 @@ test("downstream Pages failure is reported and retried without another content c
   }
   await waitFor(p.id, "published");
   assert.equal(main, originalMain);
+  assert.equal(prs.length, 1);
+});
+
+test("a replaced upstream workflow retries the matching cancelled Pages artifact", async () => {
+  const d = await create();
+  const p = (await (
+    await request("/publications", "POST", { draftId: d.id, version: 1 })
+  ).json()) as any;
+  await waitFor(p.id, "checking");
+  await tick();
+  deploy = "cancelled";
+  pages = "cancelled";
+  await tick();
+  assert.equal((await job(p.id)).status, "failed");
+  const retry = (await (
+    await request("/publications", "POST", {
+      draftId: d.id,
+      version: 1,
+      retry: true,
+    })
+  ).json()) as any;
+  assert.equal(retry.id, p.id);
+  assert.ok(requests.includes("POST /actions/runs/3/rerun"));
+  assert.ok(!requests.includes("POST /actions/runs/2/rerun-failed-jobs"));
+  live = main;
+  for (let i = 0; i < 30 && (await job(p.id)).status !== "published"; i++) {
+    await tick();
+    await new Promise((r) => setTimeout(r, 20));
+  }
+  assert.equal((await job(p.id)).status, "published");
   assert.equal(prs.length, 1);
 });
 

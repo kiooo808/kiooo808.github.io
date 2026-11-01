@@ -49,9 +49,16 @@ async function pagesRun(env: Env, job: Publication) {
   );
   return runs.workflow_runs.find(
     (run: any) =>
-      ["pages-build-deployment", "pages build and deployment"].includes(run.name) &&
-      run.head_sha === ref.object.sha,
+      ["pages-build-deployment", "pages build and deployment"].includes(
+        run.name,
+      ) && run.head_sha === ref.object.sha,
   );
+}
+async function retryRun(env: Env, run: any) {
+  const action = ["cancelled", "skipped"].includes(run.conclusion)
+    ? "rerun"
+    : "rerun-failed-jobs";
+  await gh(env, `/actions/runs/${run.id}/${action}`, "POST");
 }
 export async function createPublication(
   env: Env,
@@ -85,15 +92,17 @@ export async function createPublication(
     const run = runs.workflow_runs.find(
       (r: any) => r.head_sha === existing.merge_sha,
     );
-    if (run?.status === "completed" && run.conclusion !== "success")
-      await gh(env, `/actions/runs/${run.id}/rerun-failed-jobs`, "POST");
-    else if (run?.conclusion === "success") {
-      const pages = await pagesRun(env, existing);
+    // A newer checked artifact can already contain this content, even when GitHub
+    // replaced its older pending workflow. Retry the matching Pages artifact first.
+    const pages = await pagesRun(env, existing);
+    if (pages) {
       if (pages?.status === "completed" && pages.conclusion !== "success")
-        await gh(env, `/actions/runs/${pages.id}/rerun-failed-jobs`, "POST");
+        await retryRun(env, pages);
       await updateJob(env, existing.id, { status: "verifying", error: null });
       return { ...existing, status: "verifying", error: null };
     }
+    if (run?.status === "completed" && run.conclusion !== "success")
+      await retryRun(env, run);
     await updateJob(env, existing.id, { status: "deploying", error: null });
     return { ...existing, status: "deploying", error: null };
   }
