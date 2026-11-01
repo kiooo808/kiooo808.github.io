@@ -22,7 +22,7 @@ test("deployment holds the lock until the exact checked revision is live", async
         : response({
             workflow_runs: [
               {
-                name: "pages-build-deployment",
+                name: "pages build and deployment",
                 head_sha: options.head,
                 status: "completed",
                 conclusion: "success",
@@ -45,7 +45,7 @@ test("a downstream Pages failure fails deployment even when the artifact push su
           : response({
               workflow_runs: [
                 {
-                  name: "pages-build-deployment",
+                  name: "pages build and deployment",
                   head_sha: options.head,
                   status: "completed",
                   conclusion: "failure",
@@ -67,7 +67,7 @@ test("another artifact head cannot fail this deployment and a stale site cannot 
           : response({
               workflow_runs: [
                 {
-                  name: "pages-build-deployment",
+                  name: "pages build and deployment",
                   head_sha: "unrelated",
                   status: "completed",
                   conclusion: "failure",

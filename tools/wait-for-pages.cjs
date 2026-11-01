@@ -37,7 +37,7 @@ async function waitForPages(
       );
     const data = await response.json();
     const run = data.workflow_runs.find(
-      (run) => run.head_sha === head && run.name === "pages-build-deployment",
+      (run) => run.head_sha === head && ["pages-build-deployment", "pages build and deployment"].includes(run.name),
     );
     if (run?.status === "completed" && run.conclusion !== "success")
       throw new Error(

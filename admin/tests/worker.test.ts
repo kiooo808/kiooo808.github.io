@@ -55,7 +55,7 @@ async function remote(request: any) {
       workflow_runs: [
         {
           id: 3,
-          name: "pages-build-deployment",
+          name: "pages build and deployment",
           head_sha: "pages-head",
           status: pages === "pending" ? "in_progress" : "completed",
           conclusion: pages,
