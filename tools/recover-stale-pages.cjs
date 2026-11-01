@@ -120,6 +120,13 @@ async function recoverStalePages(
       `/pages/deployments/${run.head_sha}/cancel`,
       "POST",
     );
+    if (cancelled.status === 400 && status === "succeed") {
+      const detail = await cancelled.json().catch(() => ({}));
+      console.warn(
+        `GitHub refused cancellation of completed Pages deployment ${run.head_sha}: ${String(detail.message || "HTTP 400").slice(0, 300)}. Continuing with normal deployment checks.`,
+      );
+      return null;
+    }
     if (cancelled.status !== 204)
       throw new Error(
         `Cannot release stale Pages deployment (HTTP ${cancelled.status}).`,
