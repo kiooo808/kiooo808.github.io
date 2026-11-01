@@ -1,0 +1,39 @@
+description: 项目、笔记，还有日常。
+focus_updated: '2026-11-01'
+# Public topic summaries curated from recent conversations; no chat text or links.
+recent_focus:
+  - title: 双轮自平衡小车
+    description: 梳理控制代码，继续关注直线行驶与转向闭环。
+    tags: [STM32, MPU6050, 编码器]
+  - title: K230 机器视觉
+    description: 关注 YOLO 训练、模型转换和板端推理。
+    tags: [K230, YOLO, CanMV]
+  - title: STM32 最小系统板
+    description: 整理器件选型，完善最小系统板的元件清单。
+    tags: [STM32F103, 电路设计, '0603']
+topics:
+  - name: 电气控制
+    category: 电气控制技术
+    description: 电动机与控制电路
+  - name: C 语言
+    category: c语言学习与应用
+    description: 基础语法与程序练习
+  - name: 英语学习
+    category: 英语四级
+    description: 四级词汇与阅读练习
+  - name: 阅读笔记
+    category: 读书笔记
+    description: 阅读摘记与个人理解
+projects:
+  - slug: englishapp
+    title: EnglishApp
+    label: 英语学习工具
+    description: 记录单词、释义和例句的英语学习工具。
+    url: /apps/EnglishApp-v2-kio.html
+    category: EnglishApp
+    stack: [HTML, JavaScript, 本地存储]
+# Do not recommend test/unfinished posts on the homepage. They remain published.
+home_exclude:
+  - 日记/26-10-26 日记.md
+  - 个人写作/自恋使人困身孤岛.md
+  - 读书笔记/人文社科/心理学/为何家会伤人/读书笔记1.md

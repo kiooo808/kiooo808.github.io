@@ -3,11 +3,11 @@
   "version": "0.0.0",
   "scripts": {
     "check:posts": "node tools/check-posts.cjs",
+    "check:site": "node tools/check-site.cjs",
     "build": "npm run check:posts && hexo generate --bail",
     "clean": "hexo clean",
-    "deploy": "hexo deploy",
     "server": "hexo server",
-    "pub": "hexo clean && npm run build && hexo deploy && git add . && git commit -m \"Update source code\" && git push origin main"
+    "verify:site": "node --test tools/*.test.cjs && npm run clean && npm run build && npm run check:site"
   },
   "hexo": {
     "version": "8.1.1"
