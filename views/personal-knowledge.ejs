@@ -1,0 +1,11 @@
+<div class="personal-site site-hub">
+  <h1 class="sr-only"><%= page.title %></h1>
+  <p class="space-intro">按主题查找，沿着目录阅读。课程、练习和读书笔记都在这里持续积累。</p>
+  <div class="space-knowledge-layout"><nav class="space-topic-nav" aria-label="知识库目录"><strong>主题目录</strong><% page.personal.topics.forEach((topic, index) => { %><a href="#topic-<%= index %>"><%= topic.name %></a><% }) %><a href="#topic-other">其他笔记</a><a href="<%= url_for('/categories/') %>">所有分类 ↗</a></nav>
+  <div>
+    <% const covered = new Set(); page.personal.topics.forEach((topic, index) => { const posts = page.grouped.knowledge.toArray().filter(post => post.categories.toArray().some(category => category.name === topic.category)).sort((a,b) => a.date - b.date); posts.forEach(post => covered.add(post.path)); %>
+      <section class="space-knowledge-topic" id="topic-<%= index %>"><p class="space-eyebrow">TOPIC / 0<%= index + 1 %></p><h2><%= topic.name %> <small><%= posts.length %> 篇</small></h2><p><%= topic.description %></p><ol><% posts.forEach(post => { %><li><a href="<%= url_for(post.path) %>"><%= post.title %></a></li><% }) %></ol><% if (!posts.length) { %><p class="space-empty">正在整理，稍后再来看看。</p><% } %></section>
+    <% }); const other = page.grouped.knowledge.toArray().filter(post => !covered.has(post.path)); %>
+    <section class="space-knowledge-topic" id="topic-other"><h2>其他笔记</h2><%- partial('personal-post-list', { posts: other }) %></section>
+  </div></div>
+</div>

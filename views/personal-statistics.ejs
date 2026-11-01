@@ -1,0 +1,24 @@
+<%
+const posts = site.posts.toArray();
+const sections = { blog: 0, knowledge: 0, diary: 0 };
+const categories = new Map();
+let newest;
+posts.forEach(post => {
+  sections[content_section(post)]++;
+  if (!newest || post.date > newest) newest = post.date;
+  const category = post.categories.toArray().find(item => !item.parent);
+  const name = category ? category.name : '未分类';
+  categories.set(name, (categories.get(name) || 0) + 1);
+});
+%>
+<div class="personal-site site-hub">
+  <h1 class="sr-only"><%= page.title %></h1>
+  <p class="space-intro">随文章发布自动更新。</p>
+  <div class="blog-stats-grid">
+    <div class="blog-stat-card"><div class="blog-stat-label">已发布文章</div><div class="blog-stat-value"><%= posts.length %><span>篇</span></div></div>
+    <div class="blog-stat-card"><div class="blog-stat-label">主分类</div><div class="blog-stat-value"><%= categories.size %><span>类</span></div></div>
+    <div class="blog-stat-card"><div class="blog-stat-label">最近发布</div><div class="space-stat-date"><%= newest ? date(newest, 'YYYY.MM.DD') : '暂无记录' %></div></div>
+  </div>
+  <section class="space-section"><h2>内容分布</h2><div class="space-subnav"><a href="<%= url_for('/knowledge/') %>">知识库 · <%= sections.knowledge %></a><a href="<%= url_for('/blog/') %>">博客 · <%= sections.blog %></a><a href="<%= url_for('/diary/') %>">日记 · <%= sections.diary %></a></div></section>
+  <section class="space-section"><h2>分类分布</h2><dl class="space-stat-categories"><% [...categories].sort((a,b) => b[1] - a[1]).forEach(([name,count]) => { %><div><dt><%= name %></dt><dd><%= count %> 篇</dd></div><% }) %></dl></section>
+</div>

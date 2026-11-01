@@ -1,0 +1,49 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "myblog-studio-local",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"],
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "myblog-studio-local",
+      "database_id": "local-studio",
+      "migrations_dir": "migrations",
+    },
+  ],
+  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "myblog-studio-local" }],
+  "vars": {
+    "REPOSITORY": "kiooo808/kiooo808.github.io",
+    "SITE_URL": "https://kiooo808.github.io",
+    "OWNER_LOGIN": "kiooo808",
+  },
+  "env": {
+    "production": {
+      "name": "myblog-studio",
+      "workers_dev": true,
+      "vars": {
+        "REPOSITORY": "kiooo808/kiooo808.github.io",
+        "SITE_URL": "https://kiooo808.github.io",
+        "OWNER_LOGIN": "kiooo808",
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "myblog-studio",
+          "database_id": "3105e088-5cea-4a90-9687-73b57f67b02b",
+          "migrations_dir": "migrations",
+        },
+      ],
+      "r2_buckets": [
+        { "binding": "MEDIA", "bucket_name": "myblog-studio-private" },
+      ],
+      "triggers": { "crons": ["* * * * *"] },
+    },
+  },
+}
