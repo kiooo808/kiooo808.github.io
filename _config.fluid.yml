@@ -464,7 +464,7 @@ open_graph:
 footer:
   # 页脚第一行文字的 HTML，建议保留 Fluid 的链接，用于向更多人推广本主题
   # HTML of the first line of the footer, it is recommended to keep the Fluid link to promote this theme to more people
-  content: '<span>Copyright © 2026 kiooo808</span><br><span id="runtime_span"></span>'
+  content: '<span>Copyright © 2026 kiooo808</span><span id="runtime_span"></span>'
   # 展示网站的 PV、UV 统计数
   # Display website PV and UV statistics
   statistics:
@@ -1014,26 +1014,22 @@ about:
 # 自定义页
 # Custom Page
 custom_html: |
-  <script type="text/javascript">
-    function show_runtime() {
-      window.setTimeout("show_runtime()", 1000);
-      let X = new Date("4/1/2026 00:00:00"); // 你的建站日期
-      let Y = new Date();
-      let T = (Y.getTime() - X.getTime());
-      let M = 24 * 60 * 60 * 1000;
-      let a = T / M;
-      let A = Math.floor(a);
-      let b = (a - A) * 24;
-      let B = Math.floor(b);
-      let c = (b - B) * 60;
-      let C = Math.floor(c);
-      let D = Math.floor((c - C) * 60);
-      let span = document.getElementById("runtime_span");
-      if(span) {
-        span.innerHTML = "本站已运行: " + A + " 天 " + B + " 小时 " + C + " 分 " + D + " 秒 ";
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const span = document.getElementById('runtime_span');
+      if (!span) return;
+      const startedAt = new Date('2026-04-01T00:00:00+08:00').getTime();
+      function updateRuntime() {
+        const total = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
+        const days = Math.floor(total / 86400);
+        const hours = Math.floor(total / 3600) % 24;
+        const minutes = Math.floor(total / 60) % 60;
+        const seconds = total % 60;
+        span.textContent = `本站已运行 ${days} 天 ${hours} 小时 ${minutes} 分 ${seconds} 秒`;
       }
-    }
-    show_runtime();
+      updateRuntime();
+      window.setInterval(updateRuntime, 1000);
+    }, { once: true });
   </script>
 # 通过 hexo new page 命令创建的页面
 # Custom Page through `hexo new page`
