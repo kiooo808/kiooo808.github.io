@@ -13,7 +13,7 @@ import {
   specialMarkup,
   importMarkdown,
 } from "../shared/content";
-import { api, send, ApiError, pending, clearPending, localKey } from "./api";
+import { api, send, ApiError, pending, clearPending, signOut } from "./api";
 const MarkdownEditor = lazy(() =>
   import("./Editor").then((module) => ({ default: module.MarkdownEditor })),
 );
@@ -240,11 +240,14 @@ function App() {
           </button>
           <button
             onClick={async () => {
-              await send("/auth/logout", {});
-              localStorage.removeItem(localKey);
-              setUser(null);
-              setSelected(null);
-              setDrafts([]);
+              try {
+                await signOut();
+                setUser(null);
+                setSelected(null);
+                setDrafts([]);
+              } catch (e) {
+                setError((e as Error).message);
+              }
             }}
           >
             退出登录
