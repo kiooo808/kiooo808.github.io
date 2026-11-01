@@ -99,7 +99,7 @@ test("a confirmed stale blocker is recovered and the same Pages artifact is retr
             name: "pages build and deployment",
             head_sha: options.head,
             status: "completed",
-            conclusion: "failure",
+            conclusion: retries ? "success" : "failure",
           },
         ],
       });
@@ -146,4 +146,28 @@ test("recovery does not loop if Pages fails again", async () => {
   );
   assert.equal(recoveries, 1);
   assert.equal(retries, 1);
+});
+test("a visible revision does not release the lock while Pages is still running", async () => {
+  let runs = 0,
+    waits = 0;
+  await waitForPages(options, {
+    fetch: async (url) =>
+      url.startsWith(options.site)
+        ? response({ commit: options.revision })
+        : response({
+            workflow_runs: [
+              {
+                name: "pages build and deployment",
+                head_sha: options.head,
+                status: ++runs === 1 ? "in_progress" : "completed",
+                conclusion: runs === 1 ? null : "success",
+              },
+            ],
+          }),
+    sleep: async () => {
+      waits++;
+    },
+  });
+  assert.equal(runs, 2);
+  assert.equal(waits, 1);
 });
