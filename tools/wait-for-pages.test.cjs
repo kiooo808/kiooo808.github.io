@@ -79,3 +79,71 @@ test("another artifact head cannot fail this deployment and a stale site cannot 
     /Timed out/,
   );
 });
+test("a confirmed stale blocker is recovered and the same Pages artifact is retried once", async () => {
+  let reads = 0,
+    recoveries = 0,
+    retries = 0;
+  await waitForPages(options, {
+    fetch: async (url, init = {}) => {
+      if (url.startsWith(options.site))
+        return response({ commit: ++reads === 2 ? options.revision : "old" });
+      if (init.method === "POST") {
+        retries++;
+        assert.ok(url.endsWith("/actions/runs/7/rerun-failed-jobs"));
+        return new Response(null, { status: 201 });
+      }
+      return response({
+        workflow_runs: [
+          {
+            id: 7,
+            name: "pages build and deployment",
+            head_sha: options.head,
+            status: "completed",
+            conclusion: "failure",
+          },
+        ],
+      });
+    },
+    recover: async () => {
+      recoveries++;
+      return "previous-artifact";
+    },
+    sleep: async () => {},
+  });
+  assert.equal(recoveries, 1);
+  assert.equal(retries, 1);
+});
+test("recovery does not loop if Pages fails again", async () => {
+  let recoveries = 0,
+    retries = 0;
+  await assert.rejects(
+    waitForPages(options, {
+      fetch: async (url, init = {}) => {
+        if (url.startsWith(options.site)) return response({ commit: "old" });
+        if (init.method === "POST") {
+          retries++;
+          return new Response(null, { status: 201 });
+        }
+        return response({
+          workflow_runs: [
+            {
+              id: 7,
+              name: "pages build and deployment",
+              head_sha: options.head,
+              status: "completed",
+              conclusion: "failure",
+            },
+          ],
+        });
+      },
+      recover: async () => {
+        recoveries++;
+        return "previous-artifact";
+      },
+      sleep: async () => {},
+    }),
+    /GitHub Pages failed/,
+  );
+  assert.equal(recoveries, 1);
+  assert.equal(retries, 1);
+});

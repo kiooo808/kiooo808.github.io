@@ -1,13 +1,16 @@
 "use strict";
 const { execFileSync } = require("node:child_process");
+const { recoverStalePages } = require("./recover-stale-pages.cjs");
 
 async function waitForPages(
   { repository, head, revision, site, token, attempts = 40 },
   {
     fetch = globalThis.fetch,
     sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+    recover = recoverStalePages,
   } = {},
 ) {
+  let recovered = false;
   for (let attempt = 0; attempt < attempts; attempt++) {
     let live;
     try {
@@ -37,12 +40,47 @@ async function waitForPages(
       );
     const data = await response.json();
     const run = data.workflow_runs.find(
-      (run) => run.head_sha === head && ["pages-build-deployment", "pages build and deployment"].includes(run.name),
+      (run) =>
+        run.head_sha === head &&
+        ["pages-build-deployment", "pages build and deployment"].includes(
+          run.name,
+        ),
     );
-    if (run?.status === "completed" && run.conclusion !== "success")
+    if (run?.status === "completed" && run.conclusion !== "success") {
+      if (
+        !recovered &&
+        (await recover({ repository, site, token }, { fetch }))
+      ) {
+        recovered = true;
+        const action = ["cancelled", "skipped"].includes(run.conclusion)
+          ? "rerun"
+          : "rerun-failed-jobs";
+        const retry = await fetch(
+          `https://api.github.com/repos/${repository}/actions/runs/${run.id}/${action}`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/vnd.github+json",
+              "User-Agent": "MyBlog-deployment",
+            },
+            signal: AbortSignal.timeout(15000),
+          },
+        );
+        if (!retry.ok)
+          throw new Error(
+            `Cannot retry recovered Pages deployment (HTTP ${retry.status}).`,
+          );
+        console.log(
+          `Recovered the confirmed stale blocker; retrying Pages run ${run.id} once.`,
+        );
+        if (attempt + 1 < attempts) await sleep(15000);
+        continue;
+      }
       throw new Error(
         `GitHub Pages failed: ${run.html_url}. The live site still has the previous revision.`,
       );
+    }
     if (attempt + 1 < attempts) await sleep(15000);
   }
   throw new Error(
