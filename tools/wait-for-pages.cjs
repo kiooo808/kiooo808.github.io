@@ -22,7 +22,6 @@ async function waitForPages(
     } catch {
       /* A transient CDN/network delay is not a successful deployment. */
     }
-    if (live?.commit === revision) return;
     const response = await fetch(
       `https://api.github.com/repos/${repository}/actions/runs?head_sha=${head}&per_page=100`,
       {
@@ -46,6 +45,12 @@ async function waitForPages(
           run.name,
         ),
     );
+    if (
+      live?.commit === revision &&
+      run?.status === "completed" &&
+      run.conclusion === "success"
+    )
+      return;
     if (run?.status === "completed" && run.conclusion !== "success") {
       if (
         !recovered &&
