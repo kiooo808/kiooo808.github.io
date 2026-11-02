@@ -2,21 +2,21 @@ import React, { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { createPortal } from "react-dom";
 import {
-  Article,
+  sameContent,
+  selectedEntry,
+  entryFromSource,
   Content,
   Home,
   Section,
   labels,
-  newArticle,
-  readContent,
   exportMarkdown,
   specialMarkup,
-  importMarkdown,
 } from "../shared/content";
 import { api, send, ApiError, pending, clearPending, signOut } from "./api";
 const MarkdownEditor = lazy(() =>
   import("./Editor").then((module) => ({ default: module.MarkdownEditor })),
 );
+import { ManagePanel } from "./ManagePanel";
 import { Preview } from "./Preview";
 import "./style.css";
 type Draft = {
@@ -50,13 +50,10 @@ function App() {
     [user, setUser] = useState<any>(),
     [loading, setLoading] = useState(true),
     [error, setError] = useState("");
-  const [drafts, setDrafts] = useState<Draft[]>([]),
-    [posts, setPosts] = useState<Content[]>([]),
-    [jobs, setJobs] = useState<any[]>([]),
+  const [jobs, setJobs] = useState<any[]>([]),
     [filter, setFilter] = useState("all"),
-    [search, setSearch] = useState(""),
     [selected, setSelected] = useState<Draft | null>(null),
-    [busy, setBusy] = useState(false);
+    [inspect, setInspect] = useState<Content>();
   const [dark, setDark] = useState(
     () => localStorage.getItem("studio-theme") === "dark",
   );
@@ -65,17 +62,11 @@ function App() {
     localStorage.setItem("studio-theme", dark ? "dark" : "light");
   }, [dark]);
   async function refresh() {
-    const results = await Promise.allSettled([
-      api<Draft[]>("/drafts"),
-      api<Content[]>("/content"),
-      api<any[]>("/publications"),
-    ]);
-    if (results[0].status === "fulfilled") setDrafts(results[0].value);
-    else setError((results[0].reason as Error).message);
-    if (results[1].status === "fulfilled") setPosts(results[1].value);
-    else
-      setError("已发布内容暂未载入：" + (results[1].reason as Error).message);
-    if (results[2].status === "fulfilled") setJobs(results[2].value);
+    try {
+      setJobs(await api<any[]>("/publications"));
+    } catch (e) {
+      setError("发布记录暂未载入：" + (e as Error).message);
+    }
   }
   useEffect(() => {
     void (async () => {
@@ -101,39 +92,8 @@ function App() {
     }, 5000);
     return () => clearInterval(timer);
   }, [user]);
-  async function create(payload: Content) {
-    setBusy(true);
-    setError("");
-    try {
-      const result = (await send("/drafts", { payload })) as Draft;
-      setDrafts((old) => [result, ...old]);
-      setSelected(result);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-  async function openPublished(content: Content) {
-    const existing = drafts.find(
-      (d) => d.payload.base?.path === content.base?.path,
-    );
-    if (existing) {
-      setSelected(existing);
-      return;
-    }
-    await create(content);
-  }
   function saved(draft: Draft) {
-    setDrafts((old) => [draft, ...old.filter((x) => x.id !== draft.id)]);
-  }
-  async function importFile(file: File) {
-    try {
-      const value = importMarkdown(await file.text(), file.name);
-      await create(value);
-    } catch (e) {
-      setError("导入失败：" + (e as Error).message);
-    }
+    setSelected((current) => (current?.id === draft.id ? draft : current));
   }
   async function restore(id: string) {
     try {
@@ -142,8 +102,14 @@ function App() {
         {},
       )) as Draft;
       saved(result);
-      setSelected(result);
-      setFilter("all");
+      if (result.payload.kind === "home" && !result.payload.scope) {
+        setSelected(null);
+        setFilter("legacy");
+        setError("旧首页版本已保存，请从旧首页草稿选择条目导入。");
+      } else {
+        setSelected(result);
+        setFilter("all");
+      }
     } catch (e) {
       setError((e as Error).message);
     }
@@ -192,16 +158,7 @@ function App() {
         )}
       </main>
     );
-  const isHome = filter === "home",
-    isJobs = filter === "jobs";
-  const match = (content: Content) =>
-    content.kind === "post" &&
-    (filter === "all" || content.section === filter) &&
-    (!search ||
-      (content.title + " " + content.body)
-        .toLowerCase()
-        .includes(search.toLowerCase()));
-  const home = posts.find((p) => p.kind === "home");
+  const isJobs = filter === "jobs";
   return (
     <div className="studio">
       <aside className="sidebar">
@@ -215,13 +172,26 @@ function App() {
             ["blog", "博客", "↗"],
             ["knowledge", "知识笔记", "▦"],
             ["diary", "日记", "◷"],
-            ["home", "首页内容", "⌂"],
+            ["project", "项目", "↗"],
+            ["focus", "近期关注", "✳"],
+            ["intro", "首页简介", "⌂"],
+            ["trash", "回收站", "♲"],
+            ["legacy", "旧首页草稿", "◫"],
             ["jobs", "发布记录", "✓"],
           ].map(([key, name, icon]) => (
             <button
               key={key}
               className={filter === key ? "current" : ""}
               onClick={() => {
+                try {
+                  if (selected && pending(selected.id)) {
+                    setError("本机还有未同步修改，请先保存，再切换分区。");
+                    return;
+                  }
+                } catch {
+                  setError("无法读取本机暂存，请先保存或导出内容。");
+                  return;
+                }
                 setFilter(key);
                 setSelected(null);
               }}
@@ -244,7 +214,6 @@ function App() {
                 await signOut();
                 setUser(null);
                 setSelected(null);
-                setDrafts([]);
               } catch (e) {
                 setError((e as Error).message);
               }
@@ -259,13 +228,22 @@ function App() {
           <div>
             <p className="eyebrow">PERSONAL SPACE / STUDIO</p>
             <h1>
-              {isJobs
-                ? "每一次更新"
-                : isHome
-                  ? "首页，也常更新"
-                  : selected
-                    ? "把想法写下来"
-                    : "留下一点新内容"}
+              {selected
+                ? "编辑内容"
+                : (
+                    {
+                      all: "内容管理",
+                      project: "项目管理",
+                      focus: "近期关注",
+                      intro: "首页简介",
+                      trash: "回收站",
+                      legacy: "旧首页草稿",
+                      jobs: "发布记录",
+                      blog: "博客",
+                      knowledge: "知识笔记",
+                      diary: "日记",
+                    } as any
+                  )[filter]}
             </h1>
           </div>
           <span className="owner">● {user.login}</span>
@@ -317,8 +295,26 @@ function App() {
                 <article className="job-card" key={job.id}>
                   <div>
                     <span className={"status " + job.status}>
-                      {statusNames[job.status]}
+                      {job.status === "published" &&
+                      job.action !== "publish" &&
+                      job.action
+                        ? job.action === "trash"
+                          ? "已撤下"
+                          : "已永久删除"
+                        : statusNames[job.status]}
                     </span>
+                    <p className="muted">
+                      {
+                        (
+                          {
+                            publish: "发布更新",
+                            restore: "恢复发布",
+                            trash: "移入回收站",
+                            purge: "永久删除当前数据",
+                          } as any
+                        )[job.operation || "publish"]
+                      }
+                    </p>
                     <h3>{job.title || "未命名内容"}</h3>
                     <small>
                       {new Date(job.created).toLocaleString("zh-CN")}
@@ -363,148 +359,30 @@ function App() {
               ))
             )}
           </section>
-        ) : isHome ? (
-          <section>
-            <div className="section-heading">
-              <h2>首页内容</h2>
-              <span className="muted">改变内容，沿用现有版式。</span>
-            </div>
-            <div className="home-options">
-              {[
-                ["近期关注", "记录这阵子在做什么、想什么。"],
-                ["项目", "添加作品、说明和访问入口。"],
-              ].map(([title, desc]) => (
-                <article className="home-option" key={title}>
-                  <span className="option-symbol">
-                    {title === "项目" ? "↗" : "✳"}
-                  </span>
-                  <h2>{title}</h2>
-                  <p>{desc}</p>
-                  <button
-                    disabled={!home || busy}
-                    onClick={() => home && void openPublished(home)}
-                  >
-                    管理{title} →
-                  </button>
-                </article>
-              ))}
-            </div>
-          </section>
         ) : (
-          <section>
-            <div className="content-toolbar">
-              <label className="search-box">
-                <span>搜索</span>
-                <input
-                  aria-label="搜索内容"
-                  placeholder="标题或正文…"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-              </label>
-              <div className="row-actions">
-                <label className="button file-button">
-                  导入 Markdown
-                  <input
-                    type="file"
-                    accept=".md,.markdown,text/markdown"
-                    onChange={(e) => {
-                      if (e.target.files?.[0])
-                        void importFile(e.target.files[0]);
-                      e.target.value = "";
-                    }}
-                  />
-                </label>
-                <button
-                  className="primary"
-                  disabled={busy}
-                  onClick={() =>
-                    void create(
-                      newArticle(
-                        (["blog", "knowledge", "diary"].includes(filter)
-                          ? filter
-                          : "blog") as Section,
-                      ),
-                    )
-                  }
-                >
-                  ＋ 新建内容
-                </button>
-              </div>
-            </div>
-            <div className="section-heading">
-              <h2>草稿与待发布</h2>
-              <span className="muted">仅自己可见</span>
-            </div>
-            <div className="content-list">
-              {drafts
-                .filter((d) => match(d.payload))
-                .map((d) => (
-                  <ContentCard
-                    key={d.id}
-                    content={d.payload}
-                    status={
-                      d.published_version === d.version
-                        ? "已发布"
-                        : d.payload.base
-                          ? "修改待发布"
-                          : "私密草稿"
-                    }
-                    onClick={() => setSelected(d)}
-                  />
-                ))}
-              {!drafts.some((d) => match(d.payload)) && (
-                <div className="empty small">
-                  还没有草稿，写一篇或导入已有笔记吧。
-                </div>
-              )}
-            </div>
-            <div className="section-heading">
-              <h2>已发布内容</h2>
-              <button onClick={() => void refresh()}>刷新</button>
-            </div>
-            <div className="content-list">
-              {posts.filter(match).map((p) => (
-                <ContentCard
-                  key={p.base!.path}
-                  content={p}
-                  status="已发布"
-                  onClick={() => void openPublished(p)}
-                />
-              ))}
-            </div>
-          </section>
+          <ManagePanel
+            key={filter}
+            filter={filter}
+            revision={jobs
+              .filter((j) => j.status === "published")
+              .map((j) => j.id + ":" + j.updated)
+              .join("|")}
+            onSelect={setSelected}
+            onPreview={setInspect}
+            onError={setError}
+            onJob={() => {
+              setFilter("jobs");
+              void refresh();
+            }}
+          />
         )}
+        {inspect &&
+          createPortal(
+            <Preview content={inspect} close={() => setInspect(undefined)} />,
+            document.body,
+          )}
       </main>
     </div>
-  );
-}
-function ContentCard({
-  content,
-  status,
-  onClick,
-}: {
-  content: Content;
-  status: string;
-  onClick: () => void;
-}) {
-  return (
-    <button className="content-card" onClick={onClick}>
-      <span className="content-kind">
-        {content.kind === "post" ? labels[content.section] : "首页"}
-      </span>
-      <div>
-        <h3>{content.title || "未命名草稿"}</h3>
-        <p>
-          {content.kind === "post"
-            ? content.description ||
-              content.body.replace(/[#*`\n]/g, " ").slice(0, 95) ||
-              "从一段文字开始。"
-            : "项目与近期关注"}
-        </p>
-      </div>
-      <span className="card-status">{status} ↗</span>
-    </button>
   );
 }
 function EditorPane({
@@ -606,6 +484,7 @@ function EditorPane({
     return () => window.removeEventListener("online", online);
   }, []);
   function edit(next: Content) {
+    if (sameContent(current.current.payload, next)) return;
     current.current = { ...current.current, payload: next };
     setValue(next);
     setPreviewed("");
@@ -706,8 +585,8 @@ function EditorPane({
       <div className="edit-toolbar">
         <button
           onClick={async () => {
-            await persist();
-            back();
+            if (await persist()) back();
+            else setMessage("保存尚未完成，请处理错误或导出本机内容后再离开。");
           }}
         >
           ← 内容列表
@@ -863,7 +742,7 @@ function EditorPane({
           </div>
         </>
       ) : (
-        <HomeEditor value={value} onChange={edit} />
+        <HomeEditor value={value} onChange={edit} upload={upload} />
       )}
       <div className="history-bar">
         <button
@@ -927,30 +806,22 @@ function EditorPane({
 function HomeEditor({
   value,
   onChange,
+  upload,
 }: {
   value: Home;
   onChange: (v: Content) => void;
+  upload: (file: File) => Promise<string>;
 }) {
-  function update(key: string, list: any[]) {
-    onChange({ ...value, data: { ...value.data, [key]: list } });
-  }
-  function field(key: string, index: number, name: string, entry: any) {
-    const list = [...value.data[key]];
-    list[index] = { ...list[index], [name]: entry };
-    update(key, list);
-  }
-  function move(key: string, index: number, direction: number) {
-    const list = [...value.data[key]],
-      target = index + direction;
-    if (target < 0 || target >= list.length) return;
-    [list[index], list[target]] = [list[target], list[index]];
-    update(key, list);
-  }
-  return (
-    <div className="home-editor">
+  const [uploadError, setUploadError] = useState("");
+  const latest = useRef(value);
+  latest.current = value;
+  if (!value.scope) return <p>旧首页草稿请从“旧首页草稿”入口查看和导入。</p>;
+  if (value.scope === "intro")
+    return (
       <label>
         首页简介
-        <input
+        <textarea
+          rows={4}
           value={value.data.description || ""}
           onChange={(e) =>
             onChange({
@@ -960,121 +831,185 @@ function HomeEditor({
           }
         />
       </label>
-      {[
-        ["recent_focus", "近期关注"],
-        ["projects", "项目"],
-      ].map(([key, title]) => (
-        <section key={key}>
-          <div className="section-heading">
-            <h2>{title}</h2>
-            <button
-              onClick={() =>
-                update(key, [
-                  ...value.data[key],
-                  key === "projects"
-                    ? {
-                        slug: "",
-                        title: "",
-                        label: "",
-                        description: "",
-                        url: "",
-                        category: "",
-                        stack: [],
-                      }
-                    : { title: "", description: "", tags: [] },
-                ])
-              }
-            >
-              ＋ 添加{title}
-            </button>
-          </div>
-          {value.data[key].map((item: any, index: number) => (
-            <article className="home-item" key={index}>
-              <div className="section-heading">
-                <span className="muted">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                <div className="row-actions">
-                  <button
-                    aria-label={`${title}${index + 1}上移`}
-                    disabled={index === 0}
-                    onClick={() => move(key, index, -1)}
-                  >
-                    ↑
-                  </button>
-                  <button
-                    aria-label={`${title}${index + 1}下移`}
-                    disabled={index === value.data[key].length - 1}
-                    onClick={() => move(key, index, 1)}
-                  >
-                    ↓
-                  </button>
-                  <button
-                    onClick={() =>
-                      update(
-                        key,
-                        value.data[key].filter(
-                          (_: any, i: number) => i !== index,
-                        ),
-                      )
-                    }
-                  >
-                    移除
-                  </button>
-                </div>
-              </div>
-              <div className="metadata-grid">
-                {(key === "projects"
-                  ? ["title", "slug", "label", "url", "category"]
-                  : ["title"]
-                ).map((name) => (
-                  <label key={name}>
-                    {
-                      {
-                        title: "标题",
-                        slug: "英文短名",
-                        label: "简短分类",
-                        url: "访问链接",
-                        category: "关联文章分类",
-                      }[name]
-                    }
-                    <input
-                      value={item[name]}
-                      onChange={(e) => field(key, index, name, e.target.value)}
-                    />
-                  </label>
+    );
+  const key = value.scope === "project" ? "projects" : "recent_focus",
+    item = selectedEntry(value),
+    project = value.scope === "project";
+  function field(name: string, entry: any) {
+    const v = latest.current,
+      list = [...v.data[key]],
+      index = list.findIndex((p: any) => p === selectedEntry(v));
+    list[index] = { ...list[index], [name]: entry };
+    onChange({
+      ...v,
+      title: name === "title" ? entry : v.title,
+      data: { ...v.data, [key]: list },
+    });
+  }
+  const previous = entryFromSource(value.base, value.scope, value.entryId!);
+  return (
+    <div className="home-editor">
+      {uploadError && (
+        <p className="warning" role="alert">
+          {uploadError}
+        </p>
+      )}
+      <label>
+        标题
+        <input
+          aria-label={project ? "项目标题" : "关注标题"}
+          value={item.title || ""}
+          onChange={(e) => field("title", e.target.value)}
+        />
+      </label>
+      <label>
+        简介
+        <textarea
+          rows={3}
+          value={item.description || ""}
+          onChange={(e) => field("description", e.target.value)}
+        />
+      </label>
+      <div className="metadata-grid">
+        <label>
+          展示顺序
+          <input
+            type="number"
+            value={item.order || 0}
+            onChange={(e) => field("order", Number(e.target.value))}
+          />
+        </label>
+        {project && (
+          <>
+            <label>
+              英文短名（发布后固定）
+              <input
+                disabled={!!previous && !value.restoreId}
+                value={item.slug || ""}
+                onChange={(e) => field("slug", e.target.value)}
+              />
+            </label>
+            <label>
+              简短分类
+              <input
+                value={item.label || ""}
+                onChange={(e) => field("label", e.target.value)}
+              />
+            </label>
+            <label>
+              项目状态
+              <select
+                value={item.status || "进行中"}
+                onChange={(e) => field("status", e.target.value)}
+              >
+                {["进行中", "已完成", "维护中", "已归档"].map((x) => (
+                  <option key={x}>{x}</option>
                 ))}
-              </div>
-              <label>
-                介绍
-                <textarea
-                  rows={2}
-                  value={item.description}
-                  onChange={(e) =>
-                    field(key, index, "description", e.target.value)
-                  }
-                />
-              </label>
-              <label>
-                {key === "projects" ? "技术栈" : "标签"}（逗号分隔）
-                <SeparatedInput
-                  value={item[key === "projects" ? "stack" : "tags"] || []}
-                  onChange={(entries) =>
-                    field(
-                      key,
-                      index,
-                      key === "projects" ? "stack" : "tags",
-                      entries,
+              </select>
+            </label>
+            <label>
+              访问链接
+              <input
+                value={item.url || ""}
+                placeholder="https:// 或站内路径，可留空"
+                onChange={(e) => field("url", e.target.value)}
+              />
+            </label>
+            <label>
+              自动关联文章分类
+              <input
+                value={item.category || ""}
+                onChange={(e) => field("category", e.target.value)}
+              />
+            </label>
+          </>
+        )}
+      </div>
+      <label>
+        {project ? "技术栈" : "标签"}
+        <SeparatedInput
+          value={item[project ? "stack" : "tags"] || []}
+          onChange={(entries) => field(project ? "stack" : "tags", entries)}
+        />
+      </label>
+      {project && (
+        <>
+          <label>
+            封面图片地址
+            <input
+              value={item.cover || ""}
+              onChange={(e) => field("cover", e.target.value)}
+            />
+          </label>
+          <label className="button file-button">
+            上传封面
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+                if (file)
+                  void upload(file)
+                    .then((url) => field("cover", url))
+                    .catch((e) => setUploadError(e.message));
+              }}
+            />
+          </label>
+          <label>
+            关联文章地址（每行一个）
+            <textarea
+              rows={3}
+              value={(item.related_posts || []).join("\n")}
+              onChange={(e) =>
+                field(
+                  "related_posts",
+                  e.target.value
+                    .split("\n")
+                    .map((x) => x.trim())
+                    .filter(Boolean),
+                )
+              }
+            />
+          </label>
+          <Suspense fallback={<p>正在加载编辑器…</p>}>
+            <MarkdownEditor
+              value={item.body || ""}
+              onChange={(body) => field("body", body)}
+              upload={upload}
+            />
+          </Suspense>
+          <label className="button file-button">
+            添加图片 / PDF
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif,application/pdf"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+                if (file)
+                  void upload(file)
+                    .then((url) =>
+                      field(
+                        "body",
+                        (selectedEntry(latest.current).body || "") +
+                          "\n\n" +
+                          (file.type.startsWith("image/") ? "!" : "") +
+                          "[" +
+                          file.name.replace(/[\[\]\n]/g, "") +
+                          "](" +
+                          url +
+                          ")\n",
+                      ),
                     )
-                  }
-                />
-              </label>
-            </article>
-          ))}
-        </section>
-      ))}
+                    .catch((e) => setUploadError(e.message));
+              }}
+            />
+          </label>
+        </>
+      )}
       <p className="muted">
-        关注更新时间在发布时自动更新。知识主题与其他配置保持原样。
+        只发布当前条目；其他项目和近期关注草稿不会一起上线。
       </p>
     </div>
   );
@@ -1097,14 +1032,9 @@ function SeparatedInput({
     <input
       value={text}
       onChange={(e) => setText(e.target.value)}
-      onBlur={() =>
-        onChange(
-          text
-            .split(pattern)
-            .map((s) => s.trim())
-            .filter(Boolean),
-        )
-      }
+      onBlur={() => {
+        if(text!==joined) onChange(text.split(pattern).map(s=>s.trim()).filter(Boolean));
+      }}
     />
   );
 }

@@ -23,6 +23,8 @@ hexo.extend.filter.register('before_generate', function () {
   }
   hexo.extend.generator.register('index', function (locals) {
     const personal = locals.data.personal;
+    for (const key of ['projects','recent_focus']) personal[key].sort((a,b)=>(a.order || 0)-(b.order || 0));
+    const registry=require('../lib/lifecycle.cjs').validateRegistry(locals.data['content-lifecycle'] || {});
     const posts = locals.posts.sort('-date');
     const all = posts.toArray();
     const grouped = Object.fromEntries(['blog', 'knowledge', 'diary'].map(section => [section, posts.filter(post => sectionOf(post) === section)]));
@@ -45,8 +47,12 @@ hexo.extend.filter.register('before_generate', function () {
     }
     for (const project of personal.projects) {
       routes.push(page('projects/' + project.slug + '/', project.title, 'personal-project', {
-        project, logs: all.filter(post => post.categories.toArray().some(category => category.name === project.category))
+        project, projectHtml: hexo.render.renderSync({text:project.body || '',engine:'md'}),
+        logs: all.filter(post => post.categories.toArray().some(category => category.name === project.category) || (project.related_posts || []).some(url=>decodeURIComponent(url)===decodeURIComponent('/'+post.path)))
       }));
+    }
+    for(const item of Object.values(registry)) {
+      if(item.mode === 'trash') routes.push(page(decodeURIComponent(item.url).replace(/^\//,''), '内容已撤下', 'personal-withdrawn'));
     }
     // Retain legacy /page/2/ etc. with their original list and page size.
     const legacyPosts = locals.index_posts.sort(hexo.config.index_generator.order_by);

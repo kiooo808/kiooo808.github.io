@@ -1,6 +1,11 @@
 import { Env, HttpError } from "./types";
 import { b64 } from "./auth";
-import { Base, HOME_PATH, allowedPath } from "../shared/content";
+import {
+  Base,
+  HOME_PATH,
+  LIFECYCLE_PATH,
+  allowedPath,
+} from "../shared/content";
 const encoder = new TextEncoder();
 export function privateKeyBytes(pem: string) {
   const text = pem.replaceAll("\\n", "\n");
@@ -114,12 +119,20 @@ function headers(token: string) {
     "X-GitHub-Api-Version": "2022-11-28",
   };
 }
+const immutableReads = new Map<string, any>();
 export async function gh<T = any>(
   env: Env,
   path: string,
   method = "GET",
   body?: unknown,
 ): Promise<T> {
+  const cacheable =
+    method === "GET" &&
+    (/^\/contents\/.*[?&]ref=[0-9a-f]{40}(?:&|$)/.test(path) ||
+      /^\/git\/trees\/[0-9a-f]{40}/.test(path));
+  const cacheKey = env.REPOSITORY + path;
+  if (cacheable && immutableReads.has(cacheKey))
+    return structuredClone(immutableReads.get(cacheKey));
   const response = await fetch(
     `https://api.github.com/repos/${env.REPOSITORY}${path}`,
     {
@@ -139,25 +152,28 @@ export async function gh<T = any>(
     );
   }
   const text = await response.text();
-  return text ? (JSON.parse(text) as T) : (undefined as T);
+  const parsed = text ? JSON.parse(text) : undefined;
+  if (cacheable && text.length < 400000) {
+    if (immutableReads.size >= 64)
+      immutableReads.delete(immutableReads.keys().next().value!);
+    immutableReads.set(cacheKey, parsed);
+  }
+  return parsed as T;
 }
 export async function readFile(
   env: Env,
   path: string,
   ref = "main",
 ): Promise<Base> {
-  if (!allowedPath(path))
+  if (!allowedPath(path) && path !== LIFECYCLE_PATH)
     throw new HttpError(400, "这个文件不属于内容管理范围。");
   const value = await gh(
     env,
     `/contents/${path.split("/").map(encodeURIComponent).join("/")}?ref=${encodeURIComponent(ref)}`,
   );
-  if (value.type !== "file" || value.encoding !== "base64")
-    throw new HttpError(400, "无法读取内容文件。");
+  if (value.type !== "file") throw new HttpError(400, "无法读取内容文件。");
   const source = new TextDecoder().decode(
-    Uint8Array.from(atob(value.content.replace(/\s/g, "")), (x) =>
-      x.charCodeAt(0),
-    ),
+    await contentBytes(env, value, 2 * 1024 * 1024),
   );
   return { path, sha: value.sha, source };
 }
@@ -184,12 +200,21 @@ export async function commitFiles(
   env: Env,
   base: string,
   branch: string,
-  files: { path: string; source?: string; bytes?: ArrayBuffer }[],
+  files: {
+    path: string;
+    source?: string;
+    bytes?: ArrayBuffer;
+    remove?: boolean;
+  }[],
   message: string,
 ) {
   const old = await gh(env, `/git/commits/${base}`);
   const tree = [];
   for (const file of files) {
+    if (file.remove) {
+      tree.push({ path: file.path, mode: "100644", type: "blob", sha: null });
+      continue;
+    }
     let content = file.source,
       encoding = "utf-8";
     if (file.bytes) {
@@ -246,4 +271,22 @@ export function legacyUrl(base: Base, meta: any) {
     base.path.replace(/^source\/_posts\//, "").replace(/\.md$/, "") +
     "/"
   );
+}
+
+export async function contentBytes(
+  env: Env,
+  file: any,
+  limit = 10 * 1024 * 1024,
+) {
+  if (file.size > limit) throw new HttpError(400, "文件过大，暂不能自动处理。");
+  const blob =
+    file.encoding === "base64" ? file : await gh(env, `/git/blobs/${file.sha}`);
+  if (blob.encoding !== "base64")
+    throw new HttpError(502, "文件编码不可读取。");
+  const bytes = Uint8Array.from(atob(blob.content.replace(/\s/g, "")), (c) =>
+    c.charCodeAt(0),
+  );
+  if (bytes.byteLength > limit)
+    throw new HttpError(400, "文件过大，暂不能自动处理。");
+  return bytes;
 }

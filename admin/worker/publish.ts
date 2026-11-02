@@ -1,11 +1,35 @@
 import {
   Content,
+  Home,
+  identity,
+  entryFromSource,
+  selectedEntry,
+  splitArticle,
+  HOME_PATH,
+  LIFECYCLE_PATH,
   readContent,
   serializeContent,
   validateContent,
 } from "../shared/content";
 import { Env, Publication, HttpError, now } from "./types";
-import { gh, readFile, commitFiles } from "./github";
+import {
+  gh,
+  readFile,
+  commitFiles,
+  canonicalUrls,
+  legacyUrl,
+  contentBytes,
+} from "./github";
+import {
+  optionalFile,
+  lifecycle,
+  rebaseEntry,
+  prepareDeletion,
+  restoreFiles,
+  finishDeletion,
+  finishRestore,
+  Change,
+} from "./lifecycle";
 export async function updateJob(
   env: Env,
   id: string,
@@ -32,16 +56,20 @@ async function pagesRun(env: Env, job: Publication) {
       `/compare/${job.merge_sha}...${revision.commit}`,
     );
     if (!["ahead", "identical"].includes(comparison.status)) return;
-    const { generated } = await prepareFiles(
-      env,
-      JSON.parse(job.payload),
-      job.draft_id,
-    );
-    if (
-      (await readFile(env, generated.path, revision.commit)).source !==
-      generated.source
-    )
-      return;
+    if (job.result) {
+      if (!(await verifyApplied(env, job, revision.commit))) return;
+    } else {
+      const { generated } = await prepareFiles(
+        env,
+        JSON.parse(job.payload),
+        job.draft_id,
+      );
+      if (
+        (await readFile(env, generated.path, revision.commit)).source !==
+        generated.source
+      )
+        return;
+    }
   }
   const runs = await gh(
     env,
@@ -67,13 +95,25 @@ export async function createPublication(
   retry = false,
 ) {
   if (env.PUBLISH_PAUSED === "true")
-    throw new HttpError(503, "后台正在维护发布流程，草稿仍可保存，请稍后发布。");
+    throw new HttpError(
+      503,
+      "后台正在维护发布流程，草稿仍可保存，请稍后发布。",
+    );
   const draft = await env.DB.prepare("SELECT * FROM drafts WHERE id=?")
     .bind(id)
     .first<any>();
   if (!draft || draft.version !== version)
     throw new HttpError(409, "草稿已更新，请预览最新版本后发布。");
   const content = JSON.parse(draft.payload) as Content;
+  if (content.kind === "home" && !content.scope)
+    throw new HttpError(
+      409,
+      "旧首页草稿仅可查看或按条目导入，请使用项目/近期关注独立管理。",
+    );
+  if (content.kind === "home" && content.scope !== "intro")
+    content.title =
+      selectedEntry(content)?.title ||
+      content.title;
   validateContent(content);
   if (content.kind === "home")
     content.data.focus_updated = new Date().toLocaleDateString("sv-SE", {
@@ -133,7 +173,7 @@ export async function createPublication(
     attempt = existing ? existing.attempt + 1 : 0;
   // A unique database key makes double-clicks and parallel API calls idempotent.
   await env.DB.prepare(
-    "INSERT OR IGNORE INTO publications(id,draft_id,version,attempt,status,payload,created,updated) VALUES(?,?,?,?,?,?,?,?)",
+    "INSERT OR IGNORE INTO publications(id,draft_id,version,attempt,status,payload,created,updated,action,target_key,trash_id) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
   )
     .bind(
       jobId,
@@ -144,8 +184,17 @@ export async function createPublication(
       JSON.stringify(content),
       created,
       created,
+      existing?.action || "publish",
+      existing?.target_key || identity(content, id),
+      existing?.trash_id || null,
     )
     .run();
+  const active = await env.DB.prepare(
+    "SELECT * FROM publications WHERE target_key=? AND status IN ('queued','checking','deploying','verifying')",
+  )
+    .bind(identity(content, id))
+    .first<Publication>();
+  if (active) return active;
   return await env.DB.prepare(
     "SELECT * FROM publications WHERE draft_id=? AND version=? AND attempt=?",
   )
@@ -157,13 +206,21 @@ export async function prepareFiles(env: Env, content: Content, id: string) {
   const references = [
     ...generated.source.matchAll(/\/api\/media\/([0-9a-f-]{36})/g),
   ].map((m) => m[1]);
-  const files: { path: string; source?: string; bytes?: ArrayBuffer }[] = [];
+  const files: Change[] = [];
   let total = 0;
   for (const mediaId of new Set(references)) {
     const media = await env.DB.prepare("SELECT * FROM media WHERE id=?")
       .bind(mediaId)
       .first<any>();
-    if (!media || media.draft_id !== id)
+    if (
+      !media ||
+      (media.draft_id !== id &&
+        !(await env.DB.prepare(
+          "SELECT 1 FROM media_links WHERE draft_id=? AND media_id=?",
+        )
+          .bind(id, mediaId)
+          .first()))
+    )
       throw new HttpError(
         400,
         "文章含有不属于本草稿或不存在的附件，请重新上传。",
@@ -185,8 +242,11 @@ export async function prepareFiles(env: Env, content: Content, id: string) {
   return { files, generated };
 }
 async function complete(env: Env, job: Publication, ref = "main") {
+  if (job.action && job.action !== "publish") return finishDeletion(env, job);
   const value = JSON.parse(job.payload) as Content;
-  const generated = serializeContent(value, job.draft_id);
+  const generated = job.result
+    ? JSON.parse(job.result).generated
+    : serializeContent(value, job.draft_id);
   const base = await readFile(env, generated.path, ref);
   base.url = generated.url;
   const current = await env.DB.prepare("SELECT * FROM drafts WHERE id=?")
@@ -195,6 +255,9 @@ async function complete(env: Env, job: Publication, ref = "main") {
   if (current) {
     const payload = JSON.parse(current.payload) as Content;
     payload.base = base;
+    if (payload.kind === "home" && current.version === job.version)
+      payload.data = (readContent(base) as Home).data;
+    delete payload.restoreId;
     if (payload.kind === "post") {
       const published = readContent(base);
       if (published.kind === "post") {
@@ -225,6 +288,7 @@ async function complete(env: Env, job: Publication, ref = "main") {
     if (!results[0].meta.changes)
       throw new HttpError(409, "草稿同步冲突，线上已更新，请刷新后台。");
   }
+  await finishRestore(env, value);
   await updateJob(env, job.id, { status: "published", error: null });
 }
 export async function advance(env: Env, job: Publication) {
@@ -233,17 +297,92 @@ export async function advance(env: Env, job: Publication) {
     const ref = await gh(env, "/git/ref/heads/main");
     const base = ref.object.sha;
     let before: Content | null = null;
-    if (content.base) {
-      const current = await readFile(env, content.base.path, base);
-      current.url = content.base.url;
-      if (current.sha !== content.base.sha)
-        throw new HttpError(
-          409,
-          "这份内容已在仓库中被修改，请重新载入并合并修改。",
-        );
-      before = readContent(current);
+    let appliedContent = content;
+    let prepared: any;
+    if (job.action && job.action !== "publish") {
+      prepared = await prepareDeletion(env, job, base);
+    } else {
+      if (
+        content.kind === "home" &&
+        content.scope === "project" &&
+        !entryFromSource(content.base, content.scope, content.entryId!) &&
+        !content.restoreId
+      ) {
+        const url = `/projects/${selectedEntry(content).slug}/`;
+        if (
+          Object.values(await lifecycle(env, base)).some(
+            (row: any) => row.url === url && row.mode === "trash",
+          )
+        )
+          throw new HttpError(
+            409,
+            "该项目地址仍在回收站，请先恢复原项目或选择其他短名。",
+          );
+      }
+      if (content.restoreId) {
+        const trash = await env.DB.prepare(
+          "SELECT content_key FROM trash WHERE id=?",
+        )
+          .bind(content.restoreId)
+          .first<any>();
+        if (!trash || trash.content_key !== identity(content, job.draft_id))
+          throw new HttpError(409, "恢复目标已变化。");
+      }
+      if (content.base) {
+        const current = await optionalFile(env, content.base.path, base);
+        if (content.kind === "home" && content.scope) {
+          if (!current) throw new HttpError(409, "首页数据不存在。");
+          appliedContent = rebaseEntry(content, current, !!content.restoreId);
+          if (entryFromSource(current, content.scope, content.entryId!))
+            before = {
+              ...appliedContent,
+              data: (readContent(current) as Home).data,
+            };
+        } else if (content.restoreId) {
+          if (current)
+            throw new HttpError(409, "原地址已被占用，不能覆盖恢复。");
+        } else {
+          if (!current || current.sha !== content.base.sha)
+            throw new HttpError(
+              409,
+              "这份内容已在仓库中被修改，请重新载入并合并修改。",
+            );
+          const urls = await canonicalUrls(env);
+          current.url =
+            urls?.[current.path] ||
+            legacyUrl(current, splitArticle(current.source).meta);
+          validateContent({ ...content, base: current });
+          appliedContent = { ...content, base: current };
+          before = readContent(current);
+        }
+      }
+      prepared = await prepareFiles(env, appliedContent, job.draft_id);
+      prepared.files.push(...(await restoreFiles(env, content, base)));
     }
-    const { files } = await prepareFiles(env, content, job.draft_id);
+    const files: Change[] = prepared.files;
+    const expected = [];
+    for (const file of files)
+      expected.push(
+        file.bytes
+          ? {
+              path: file.path,
+              digest: Array.from(
+                new Uint8Array(
+                  await crypto.subtle.digest("SHA-256", file.bytes),
+                ),
+              )
+                .map((x) => x.toString(16).padStart(2, "0"))
+                .join(""),
+            }
+          : { path: file.path, source: file.source, remove: file.remove },
+      );
+    await updateJob(env, job.id, {
+      result: JSON.stringify({
+        ...prepared.result,
+        generated: prepared.generated,
+        expected,
+      }),
+    });
     const branch = "studio/" + job.id;
     const head = await commitFiles(
       env,
@@ -351,13 +490,18 @@ export async function advance(env: Env, job: Publication) {
         `/compare/${job.merge_sha}...${revision.commit}`,
       );
       if (["ahead", "identical"].includes(comparison.status)) {
-        const { generated } = await prepareFiles(env, content, job.draft_id);
-        const actual = await readFile(env, generated.path, revision.commit);
-        if (actual.source !== generated.source)
-          throw new HttpError(
-            409,
-            "后续更新已修改这份内容，请打开网站核对并重新载入。",
-          );
+        if (job.result) {
+          if (!(await verifyApplied(env, job, revision.commit)))
+            throw new HttpError(
+              409,
+              "后续更新已修改发布内容，请重新载入核对。",
+            );
+        } else {
+          const { generated } = await prepareFiles(env, content, job.draft_id);
+          const actual = await readFile(env, generated.path, revision.commit);
+          if (actual.source !== generated.source)
+            throw new HttpError(409, "后续更新已修改这份内容，请重新载入。");
+        }
         await complete(env, job, revision.commit);
         return;
       }
@@ -412,4 +556,33 @@ export async function processQueue(env: Env) {
       .bind("publisher", token)
       .run();
   }
+}
+
+async function verifyApplied(env: Env, job: Publication, ref: string) {
+  for (const file of JSON.parse(job.result || "{}").expected || []) {
+    try {
+      const raw = await gh(
+        env,
+        `/contents/${file.path.split("/").map(encodeURIComponent).join("/")}?ref=${encodeURIComponent(ref)}`,
+      );
+      if (file.remove) return false;
+      const bytes = await contentBytes(env, raw);
+      if (
+        file.source !== undefined &&
+        new TextDecoder().decode(bytes) !== file.source
+      )
+        return false;
+      if (
+        file.digest &&
+        Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)))
+          .map((x) => x.toString(16).padStart(2, "0"))
+          .join("") !== file.digest
+      )
+        return false;
+    } catch (e) {
+      if (file.remove && e instanceof HttpError && e.status === 404) continue;
+      throw e;
+    }
+  }
+  return true;
 }

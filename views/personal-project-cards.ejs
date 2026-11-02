@@ -1,10 +1,10 @@
 <div class="space-projects"><% projects.forEach(project => { %>
   <article class="space-project-card">
     <div class="space-project-info">
-      <div class="space-project-title"><div class="space-project-art" aria-hidden="true">En<span>.</span></div><div><p class="space-eyebrow"><%= project.label %></p><h3><a href="<%= url_for('/projects/' + project.slug + '/') %>"><%= project.title %></a></h3></div></div>
+      <div class="space-project-title"><% if(project.cover) { %><img class="space-project-cover" src="<%= url_for(project.cover) %>" alt=""><% } else { %><div class="space-project-art" aria-hidden="true"><%= project.title.slice(0,2) %><span>.</span></div><% } %><div><p class="space-eyebrow"><%= project.label %></p><h3><a href="<%= url_for('/projects/' + project.slug + '/') %>"><%= project.title %></a></h3></div></div>
       <p class="space-project-description"><%= project.description %></p>
       <div class="space-tags"><% project.stack.forEach(tag => { %><span><%= tag %></span><% }) %></div>
-      <div class="space-actions"><a class="space-button" href="<%= url_for(project.url) %>">打开工具 <span aria-hidden="true">↗</span></a><a class="space-text-link" href="<%= url_for('/projects/' + project.slug + '/') %>">开发记录 →</a></div>
+      <div class="space-actions"><% if(project.url) { %><a class="space-button" href="<%= url_for(project.url) %>">访问项目 <span aria-hidden="true">↗</span></a><% } %><a class="space-text-link" href="<%= url_for('/projects/' + project.slug + '/') %>">开发记录 →</a></div>
     </div>
   </article>
 <% }) %></div>

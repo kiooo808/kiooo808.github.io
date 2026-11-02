@@ -1,1 +1,6 @@
-<div class="personal-site site-hub"><h1 class="sr-only"><%= page.title %></h1><a class="space-back" href="<%= url_for('/projects/') %>">← 所有项目</a><p class="space-intro"><%= page.project.description %></p><div class="space-tags"><% page.project.stack.forEach(tag => { %><span><%= tag %></span><% }) %></div><div class="space-actions"><a class="space-button" href="<%= url_for(page.project.url) %>">打开 EnglishApp ↗</a></div><section class="space-section"><h2>开发与更新记录</h2><%- partial('personal-post-list', { posts: page.logs }) %></section></div>
+<div class="personal-site site-hub"><h1><%= page.project.title %></h1><a class="space-back" href="<%= url_for('/projects/') %>">← 所有项目</a>
+<% if(page.project.cover) { %><img class="project-detail-cover" src="<%= url_for(page.project.cover) %>" alt="<%= page.project.title %>"><% } %>
+<p class="space-intro"><%= page.project.description %></p><% if(page.project.status) { %><p class="space-eyebrow"><%= page.project.status %></p><% } %>
+<div class="space-tags"><% page.project.stack.forEach(tag => { %><span><%= tag %></span><% }) %></div>
+<% if(page.project.url) { %><div class="space-actions"><a class="space-button" href="<%= url_for(page.project.url) %>">访问项目 ↗</a></div><% } %>
+<article class="page-content project-body"><%- page.projectHtml %></article><section class="space-section"><h2>开发与更新记录</h2><%- partial('personal-post-list', { posts: page.logs }) %></section></div>

@@ -5,7 +5,10 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const root = path.join(__dirname, '..', 'public');
-const pages = ['index.html', 'projects/index.html', 'projects/englishapp/index.html', 'knowledge/index.html', 'blog/index.html', 'diary/index.html', 'statistics/index.html'];
+const lifecyclePath=path.join(__dirname,'../source/_data/content-lifecycle.json');
+const lifecycle=require('../lib/lifecycle.cjs').validateRegistry(fs.existsSync(lifecyclePath)?JSON.parse(fs.readFileSync(lifecyclePath,'utf8')):{});
+const removed=new Set(Object.values(lifecycle).flatMap(entry=>[...(entry.retired || []),...(entry.mode==='purge'?[decodeURIComponent(entry.url).replace(/^\//,'')+'index.html']:[])]));
+const pages = ['index.html' , 'projects/index.html', 'projects/englishapp/index.html', 'knowledge/index.html', 'blog/index.html', 'diary/index.html', 'statistics/index.html'].filter(page=>!removed.has(page));
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const hash = filename => crypto.createHash('sha256').update(fs.readFileSync(filename)).digest('hex');
 function files(directory, prefix = '') {
@@ -26,6 +29,7 @@ for (const file of pages) {
     const url = new URL(href, 'https://site.test/' + file);
     let relative = decodeURIComponent(url.pathname).replace(/^\//, '');
     if (!relative || relative.endsWith('/')) relative += 'index.html';
+    if(removed.has(relative) && !fs.existsSync(path.join(root,relative))) continue;
     assert(fs.existsSync(path.join(root, relative)), `${file}: broken internal link ${href}`);
     if (url.hash && relative.endsWith('.html')) {
       const id = decodeURIComponent(url.hash.slice(1));
@@ -49,15 +53,15 @@ assert(statisticsTotal, 'statistics must render the live published-post total');
 assert.equal(Number(statisticsTotal[1]), indexedUrls.length, 'statistics must match the published search index');
 
 const retainedUrls = require('./legacy-urls.json');
-for (const relative of retainedUrls) assert(fs.existsSync(path.join(root, relative)), `lost original URL: ${relative}`);
-let oldFiles = retainedUrls.length;
+for (const relative of retainedUrls.filter(relative=>!removed.has(relative))) assert(fs.existsSync(path.join(root, relative)), `lost original URL: ${relative}`);
+let oldFiles = retainedUrls.filter(relative=>!removed.has(relative)).length;
 if (process.argv[2]) {
   const baseline = path.resolve(process.argv[2]);
-  for (const relative of files(baseline)) {
+  for (const relative of files(baseline).filter(relative=>!removed.has(relative))) {
     assert(fs.existsSync(path.join(root, relative)), `lost original URL: ${relative}`);
     if (relative.startsWith('apps' + path.sep) || !/\.(?:html|css|js|xml)$/i.test(relative)) {
       assert.equal(hash(path.join(root, relative)), hash(path.join(baseline, relative)), `original asset changed: ${relative}`);
     }
   }
 }
-console.log(`Site checks passed: ${pages.length} checked pages, ${links} local links/anchors, ${indexedUrls.length} records in content sections, ${oldFiles} original URLs retained.`);
+console.log(`Site checks passed: ${pages.length} checked pages, ${links} local links/anchors, ${indexedUrls.length} records in content sections, ${oldFiles} original URLs retained (${removed.size} explicitly retired routes).`);

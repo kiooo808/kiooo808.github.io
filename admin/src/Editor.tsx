@@ -26,6 +26,15 @@ export function MarkdownEditor({
     if (mode !== "visual" || !root.current) return;
     let cancelled = false,
       ready = false;
+    let userTouched = false;
+    const touched = () => {
+      userTouched = true;
+    };
+    const surface = root.current;
+    surface.addEventListener("beforeinput", touched, true);
+    surface.addEventListener("paste", touched, true);
+    surface.addEventListener("drop", touched, true);
+    surface.addEventListener("pointerdown", touched, true);
     const editor = new Crepe({
       root: root.current,
       defaultValue: valueRef.current,
@@ -40,7 +49,8 @@ export function MarkdownEditor({
     });
     editor.on((listener) =>
       listener.markdownUpdated((_ctx, text) => {
-        if (ready && !cancelled) change.current(text);
+        if (ready && !cancelled && userTouched && text !== valueRef.current)
+          change.current(text);
       }),
     );
     const created = editor
@@ -56,6 +66,8 @@ export function MarkdownEditor({
       .catch(() => setError("可视化编辑器加载失败，请使用 Markdown 编辑。"));
     return () => {
       cancelled = true;
+      for (const event of ["beforeinput", "paste", "drop", "pointerdown"])
+        surface.removeEventListener(event, touched, true);
       if (ready) void editor.destroy();
       else void created;
     };

@@ -884,3 +884,111 @@ small {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
 }
+
+.management-filters {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 16px;
+  margin: 20px 0;
+}
+.manager-row {
+  border: 1px solid var(--line);
+  background: var(--paper);
+  border-radius: 16px;
+  padding: 20px;
+  margin: 12px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.manager-summary {
+  min-width: 0;
+  flex: 1;
+}
+.manager-row h3 {
+  margin: 8px 0;
+}
+.manager-row p {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.manager-row .row-actions {
+  flex-wrap: wrap;
+}
+.status-chip {
+  color: var(--accent);
+}
+.danger-text {
+  color: #b34460;
+}
+.danger {
+  background: #a63452;
+  color: white;
+  border-color: #a63452;
+}
+.management-dialog {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  padding: 28px;
+  border-radius: 18px;
+  max-width: 640px;
+  width: calc(100% - 24px);
+  max-height: 90vh;
+  overflow: auto;
+}
+.management-dialog label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.management-dialog p {
+  line-height: 1.8;
+}
+.file-note {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.management-dialog > button {
+  margin: 6px;
+}
+.management-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+@media (max-width: 720px) {
+  .management-filters {
+    grid-template-columns: 1fr 1fr;
+  }
+  .management-filters label:first-child {
+    grid-column: 1/-1;
+  }
+  .manager-row {
+    display: block;
+  }
+  .manager-row .row-actions {
+    margin-top: 16px;
+  }
+  .manager-row .row-actions button {
+    flex: 1;
+  }
+  .management-dialog {
+    padding: 20px;
+  }
+}
+
+.management > .section-heading h2 {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+@media (max-width: 720px) {
+  .management > .section-heading {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .management > .section-heading > .row-actions {
+    flex-wrap: wrap;
+  }
+}

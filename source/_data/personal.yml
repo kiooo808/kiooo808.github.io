@@ -8,18 +8,21 @@ recent_focus:
       - STM32
       - MPU6050
       - 编码器
+    id: legacy-0-双轮自平衡小车
   - title: K230 机器视觉
     description: 关注 YOLO 训练、模型转换和板端推理。
     tags:
       - K230
       - YOLO
       - CanMV
+    id: legacy-1-K230 机器视觉
   - title: STM32 最小系统板
     description: 整理器件选型，完善最小系统板的元件清单。
     tags:
       - STM32F103
       - 电路设计
       - "0603"
+    id: legacy-2-STM32 最小系统板
 topics:
   - name: 电气控制
     category: 电气控制技术
@@ -44,6 +47,7 @@ projects:
       - HTML
       - JavaScript
       - 本地存储
+    id: englishapp
 # Do not recommend test/unfinished posts on the homepage. They remain published.
 home_exclude:
   - 日记/26-10-26 日记.md

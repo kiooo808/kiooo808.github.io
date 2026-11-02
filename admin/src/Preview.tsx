@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
-import { Content } from "../shared/content";
+import { Content, selectedEntry } from "../shared/content";
 export function Preview({
   content,
   close,
@@ -11,7 +11,11 @@ export function Preview({
 }) {
   const [dark, setDark] = useState(false),
     [mobile, setMobile] = useState(false),
-    [html, setHtml] = useState("");
+    [html, setHtml] = useState(""),
+    [attachments, setAttachments] = useState<{ name: string; url: string }[]>(
+      [],
+    ),
+    [previewError, setPreviewError] = useState("");
   useEffect(() => {
     const background = document.querySelector<HTMLElement>(".studio");
     // The modal is portalled outside the inert workspace.
@@ -27,12 +31,39 @@ export function Preview({
   }, []);
   useEffect(() => {
     let active = true;
-    const blobs: string[] = [];
     async function render() {
+      const archived = content.restoreId
+        ? await fetch(
+            "/api/manage/assets?trash=" + encodeURIComponent(content.restoreId),
+          ).then(async (response) =>
+            response.ok ? ((await response.json()) as any[]) : [],
+          )
+        : [];
+      const resolveUrl = (src: string) => {
+        const route = src
+          .replace(/^https:\/\/kiooo808\.github\.io\//, "/")
+          .replace(/^\//, "");
+        const archive = archived.find((asset: any) => asset.route === route);
+        return (
+          archive?.url ||
+          (src.startsWith("/api/")
+            ? src
+            : src.startsWith("/")
+              ? "https://kiooo808.github.io" + src
+              : src)
+        );
+      };
       let body =
         content.kind === "post"
           ? await marked.parse(content.body, { breaks: true, gfm: true })
-          : "";
+          : content.scope === "project"
+            ? await marked.parse(
+                (selectedEntry(content).cover
+                  ? `![](${selectedEntry(content).cover})\n\n`
+                  : "") + (selectedEntry(content).body || ""),
+                { breaks: true, gfm: true },
+              )
+            : "";
       const safe = DOMPurify.sanitize(body, {
         FORBID_TAGS: ["script", "iframe", "object", "embed", "form", "style"],
         FORBID_ATTR: ["style", "srcset"],
@@ -40,25 +71,48 @@ export function Preview({
       const template = document.createElement("template");
       template.innerHTML = safe;
       for (const img of template.content.querySelectorAll("img")) {
-        const src = img.getAttribute("src") || "";
-        if (src.startsWith("/api/media/")) {
+        const src = resolveUrl(img.getAttribute("src") || "");
+        if (src.startsWith("/api/")) {
           const response = await fetch(src);
           if (response.ok) {
-            const blob = URL.createObjectURL(await response.blob());
-            blobs.push(blob);
-            img.src = blob;
+            // Sandboxed srcdoc has an opaque origin and cannot read parent blob URLs.
+            const file = await response.blob();
+            img.src = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(String(reader.result));
+              reader.onerror = () => reject(new Error("预览图片读取失败。"));
+              reader.readAsDataURL(file);
+            });
           }
         } else if (src.startsWith("/"))
           img.src = "https://kiooo808.github.io" + src;
         else if (!/^https?:|data:image\//.test(src)) img.removeAttribute("src");
         img.setAttribute("referrerpolicy", "no-referrer");
       }
-      if (active) setHtml(template.innerHTML);
+      const pdfs: { name: string; url: string }[] = [];
+      for (const anchor of template.content.querySelectorAll("a")) {
+        const original = anchor.getAttribute("href") || "",
+          src = resolveUrl(original);
+        if (src.startsWith("/api/") || /^https?:\/\//.test(src)) {
+          anchor.href = src;
+          if (
+            /\.pdf(?:[?#]|$)/i.test(original) ||
+            /\.pdf/i.test(anchor.textContent || "")
+          )
+            pdfs.push({ name: anchor.textContent || "PDF 附件", url: src });
+        }
+      }
+      if (active) {
+        setHtml(template.innerHTML);
+        setAttachments(pdfs);
+      }
     }
-    void render();
+    void render().catch(() => {
+      if (active)
+        setPreviewError("预览附件读取失败，请检查登录状态或恢复文件。");
+    });
     return () => {
       active = false;
-      blobs.forEach(URL.revokeObjectURL);
     };
   }, [content]);
   const bg = dark ? "#221d2b" : "#f8f5fc",
@@ -71,22 +125,26 @@ export function Preview({
       .replaceAll(">", "&gt;")
       .replaceAll('"', "&quot;");
   const cards =
-    content.kind === "home"
-      ? `<p>${escape(content.data.description || "")}</p><h2>近期关注</h2>` +
-        content.data.recent_focus
-          .map(
-            (p: any) =>
-              `<article><h3>${escape(p.title)}</h3><p>${escape(p.description)}</p><small>${escape(p.tags.join(" · "))}</small></article>`,
-          )
-          .join("") +
-        "<h2>项目</h2>" +
-        content.data.projects
-          .map(
-            (p: any) =>
-              `<article><small>${escape(p.label || "")}</small><h3>${escape(p.title)}</h3><p>${escape(p.description)}</p></article>`,
-          )
-          .join("")
-      : html;
+    content.kind === "home" && content.scope
+      ? content.scope === "intro"
+        ? `<p>${escape(content.data.description || "")}</p>`
+        : `<p>${escape(selectedEntry(content).description || "")}</p>${html}`
+      : content.kind === "home"
+        ? `<p>${escape(content.data.description || "")}</p><h2>近期关注</h2>` +
+          content.data.recent_focus
+            .map(
+              (p: any) =>
+                `<article><h3>${escape(p.title)}</h3><p>${escape(p.description)}</p><small>${escape(p.tags.join(" · "))}</small></article>`,
+            )
+            .join("") +
+          "<h2>项目</h2>" +
+          content.data.projects
+            .map(
+              (p: any) =>
+                `<article><small>${escape(p.label || "")}</small><h3>${escape(p.title)}</h3><p>${escape(p.description)}</p></article>`,
+            )
+            .join("")
+        : html;
   const src = `<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src blob: data: https:; style-src 'unsafe-inline';"><style>*{box-sizing:border-box}body{margin:0;padding:32px;background:${bg};color:${fg};font:16px/1.9 system-ui,sans-serif;overflow-wrap:anywhere}h1{font-size:30px;line-height:1.45}h2{margin-top:32px;font-size:22px}h3{font-size:19px}img{max-width:100%;height:auto}pre{overflow:auto;padding:16px;border:1px solid ${line};border-radius:8px}table{border-collapse:collapse;max-width:100%;display:block;overflow:auto}td,th{border:1px solid ${line};padding:8px}a{color:inherit}article{padding:18px 22px;margin:12px 0;border:1px solid ${line};border-radius:16px}small{opacity:.8}blockquote{border-left:3px solid ${line};margin:0;padding-left:16px}</style><h1>${escape(content.title || "未命名文章")}</h1>${content.kind === "post" ? `<small>${escape(content.date)} · ${escape(content.description)}</small>` : ""}${cards}</html>`;
   return (
     <div className="overlay">
@@ -113,6 +171,26 @@ export function Preview({
             {mobile ? "桌面宽度" : "手机宽度"}
           </button>
         </div>
+        {previewError && (
+          <p role="alert" className="warning">
+            {previewError}
+          </p>
+        )}
+        {attachments.length > 0 && (
+          <div className="preview-controls">
+            {attachments.map((file, i) => (
+              <a
+                className="button"
+                key={i}
+                href={file.url}
+                target="_blank"
+                rel="noreferrer"
+              >
+                打开 {file.name} ↗
+              </a>
+            ))}
+          </div>
+        )}
         <iframe
           sandbox=""
           title="排版预览"
