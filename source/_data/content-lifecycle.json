@@ -1,0 +1,18 @@
+{
+  "home:project:e6a11e49-e2b8-4d2c-bf0c-f93f95505ee3": {
+    "url": "/projects/studio-management-check-20261102/",
+    "mode": "trash",
+    "retired": [
+      "images/uploads/1cb415f8-efdd-4d26-a5a2-fb67f0407f15.pdf",
+      "images/uploads/f4553f1e-c49c-4ba9-969a-db169e2c910c.png"
+    ]
+  },
+  "post:source/_posts/blog/7e1a6fd7-4d4a-4b91-a2bf-655e447e3692.md": {
+    "url": "/2026/11/01/7e1a6fd7-4d4a-4b91-a2bf-655e447e3692/",
+    "mode": "purge",
+    "retired": [
+      "images/uploads/bdf66a55-b34d-4081-a444-e8d6cb583f0b.pdf",
+      "images/uploads/c5112a5d-5d21-4af6-88af-bd6033697ed2.png"
+    ]
+  }
+}

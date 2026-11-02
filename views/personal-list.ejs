@@ -1,0 +1,7 @@
+<div class="personal-site site-hub">
+  <h1 class="sr-only"><%= page.title %></h1>
+  <p class="space-intro"><%= page.section === 'diary' ? '学习之外，也记录日常。按时间回看那些平凡而具体的片段。' : '项目实践、使用心得与个人思考。写下来，让经历成为可以再次出发的地方。' %></p>
+  <nav class="space-subnav" aria-label="更多阅读方式"><a href="<%= url_for('/archives/') %>">全部归档</a><a href="<%= url_for('/categories/') %>">分类</a><a href="<%= url_for('/tags/') %>">标签</a><a href="<%= url_for(page.section === 'diary' ? '/blog/' : '/diary/') %>"><%= page.section === 'diary' ? '博客' : '日记' %> →</a></nav>
+  <% if (page.section === 'diary') { let month = ''; page.posts.toArray().forEach(post => { const current = date(post.date, 'YYYY 年 MM 月'); if (current !== month) { month = current; %><h2 class="space-month"><%= current %></h2><% } %><%- partial('personal-post-list', { posts: [post] }) %><% }); if (!page.posts.length) { %><p class="space-empty">还没有日记。</p><% } } else { %><%- partial('personal-post-list', { posts: page.posts.toArray() }) %><% } %>
+  <%- partial('_partials/paginator') %>
+</div>

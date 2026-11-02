@@ -1,0 +1,4 @@
+<% if (!posts.length) { %><p class="space-empty">这里还没有记录，下一次探索从这里开始。</p><% } %>
+<div class="space-post-list"><% posts.forEach(post => { %>
+  <article class="space-post-row"><div class="space-post-date"><time datetime="<%= date_xml(post.date) %>"><%= date(post.date, 'YYYY.MM.DD') %></time><span><%= section_label(post) %></span></div><div><h3><a href="<%= url_for(post.path) %>"><%= post.title %></a></h3><% if(post.description) { %><p><%= strip_html(post.description).slice(0, 140) %></p><% } %></div><a class="space-row-arrow" aria-label="阅读：<%= post.title %>" href="<%= url_for(post.path) %>">↗</a></article>
+<% }) %></div>

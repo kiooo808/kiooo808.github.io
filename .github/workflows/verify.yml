@@ -1,0 +1,28 @@
+name: Verify website and studio
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  verify:
+    name: Build and check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            admin/package-lock.json
+      - run: npm ci
+      - run: npm ci --prefix admin
+      - run: npm run build --prefix admin
+      - run: npm test --prefix admin
+      - run: npm run verify:site
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hexo-site-${{ github.sha }}
+          path: public
+          retention-days: 7

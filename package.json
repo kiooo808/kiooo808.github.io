@@ -1,0 +1,27 @@
+{
+  "name": "hexo-site",
+  "version": "0.0.0",
+  "scripts": {
+    "check:posts": "node tools/checks/check-posts.cjs",
+    "check:site": "node tools/checks/check-site.cjs",
+    "build": "npm run check:posts && hexo generate --bail",
+    "clean": "hexo clean",
+    "server": "hexo server",
+    "verify:site": "node --test tools/tests/*.test.cjs && npm run clean && npm run build && npm run check:site && node tools/checks/check-management-site.cjs"
+  },
+  "hexo": {
+    "version": "8.1.1"
+  },
+  "dependencies": {
+    "hexo": "^8.0.0",
+    "hexo-generator-archive": "^2.0.0",
+    "hexo-generator-category": "^2.0.0",
+    "hexo-generator-index": "^4.0.0",
+    "hexo-generator-tag": "^2.0.0",
+    "hexo-renderer-ejs": "^2.0.0",
+    "hexo-renderer-marked": "^7.0.0",
+    "hexo-renderer-stylus": "^3.0.1",
+    "hexo-server": "^3.0.0",
+    "hexo-theme-fluid": "^1.9.9"
+  }
+}
