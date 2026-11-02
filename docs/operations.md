@@ -23,3 +23,9 @@ git clone https://github.com/kiooo808/kiooo808.github.io.git
 ```
 
 完整历史备份保存在仓库外，不推送公开备份分支。需要恢复时先从 bundle 克隆到独立目录检查，不直接覆盖当前生产分支。历史 PR 和 Actions 记录继续保留，历史重置不代表彻底删除 GitHub 上旧对象。
+
+## 内容撤下与永久删除
+
+删除沿用发布检查及上线核对流程，不直接修改 gh-pages。回收站提示页保留原地址；永久删除的已确认地址允许返回 404，其他旧地址和静态资源继续受兼容性检查保护。
+
+迁移管理功能前须私密备份数据库和 R2；确认发布队列为空，再在 `admin/` 目录执行 `npx wrangler d1 migrations apply DB --remote --env production` 并部署工作台。

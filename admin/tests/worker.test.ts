@@ -38,7 +38,10 @@ async function remote(request: any) {
     request.method === "GET"
       ? undefined
       : await request.json().catch(() => ({}));
-  if (url.hostname === "kiooo808.github.io") return json({ commit: live });
+  if (url.hostname === "kiooo808.github.io")
+    return url.pathname === "/content-manifest.json"
+      ? json({ posts: { [publicPath]: "/2026/04/01/existing/" } })
+      : json({ commit: live });
   if (url.hostname === "github.com" && p === "/login/oauth/access_token")
     return json({ access_token: "fake-user-token" });
   if (p === "/user") return json(oauthUser);
@@ -67,19 +70,45 @@ async function remote(request: any) {
         },
       ],
     });
-  if (p.startsWith("/compare/")) return comparison === "missing" ? json({}, 404) : json({ status: comparison });
+  if (p.startsWith("/compare/"))
+    return comparison === "missing"
+      ? json({}, 404)
+      : json({ status: comparison });
+  if (p.startsWith("/git/blobs/") && request.method === "GET") {
+    const file = [...files.values()].find((f) => f.sha === p.split("/").pop());
+    return file
+      ? json({
+          encoding: "base64",
+          content: Buffer.from(file.source).toString("base64"),
+          size: Buffer.byteLength(file.source),
+        })
+      : json({}, 404);
+  }
   if (p.startsWith("/contents/")) {
     const key = decodeURIComponent(p.slice(10)),
       file = files.get(key);
     return file
       ? json({
           type: "file",
-          encoding: "base64",
+          encoding: file.source.length > 1000000 ? "none" : "base64",
+          size: Buffer.byteLength(file.source),
           sha: file.sha,
-          content: Buffer.from(file.source).toString("base64"),
+          content:
+            file.source.length > 1000000
+              ? ""
+              : Buffer.from(file.source).toString("base64"),
         })
       : json({}, 404);
   }
+  if (p.startsWith("/git/trees/") && request.method === "GET")
+    return json({
+      truncated: false,
+      tree: [...files].map(([path, file]) => ({
+        path,
+        type: "blob",
+        sha: file.sha,
+      })),
+    });
   if (p.startsWith("/git/commits/") && request.method === "GET")
     return json({ tree: { sha: "base-tree" } });
   if (p === "/git/blobs") {
@@ -139,8 +168,14 @@ async function remote(request: any) {
     pr.state = "closed";
     pr.merge_commit_sha = "merge-" + ++n;
     main = pr.merge_commit_sha;
-    for (const entry of trees.get(commits.get(pr.head.sha)!) || [])
-      files.set(entry.path, { source: blobs.get(entry.sha)!, sha: entry.sha });
+    for (const entry of trees.get(commits.get(pr.head.sha)!) || []) {
+      if (entry.sha === null) files.delete(entry.path);
+      else
+        files.set(entry.path, {
+          source: blobs.get(entry.sha)!,
+          sha: entry.sha,
+        });
+    }
     return json({ merged: true, sha: main });
   }
   if (p === "/actions/workflows/check.yml/runs")
@@ -235,12 +270,15 @@ before(async () => {
   );
   db = await mf.getD1Database("DB");
   await db.exec(readFileSync("migrations/0001_studio.sql", "utf8"));
+  await db.exec(readFileSync("migrations/0002_management.sql", "utf8"));
 });
 after(async () => {
   await mf?.dispose();
 });
 beforeEach(async () => {
   for (const table of [
+    "trash",
+    "media_links",
     "sessions",
     "oauth_states",
     "drafts",
@@ -729,17 +767,30 @@ test("later deployments containing the same content still verify publication", a
   assert.equal((await job(p.id)).status, "published");
 });
 
-
 test("maintenance blocks publications but allows saving drafts", async () => {
   const paused = { "X-Test-Pause": "true" };
-  const saved = await request("/drafts", "POST", { payload: { ...newArticle(), title: "Maintenance draft" } }, paused);
+  const saved = await request(
+    "/drafts",
+    "POST",
+    { payload: { ...newArticle(), title: "Maintenance draft" } },
+    paused,
+  );
   assert.equal(saved.status, 201);
-  const draft = await saved.json() as any;
-  const response = await request("/publications", "POST", { draftId: draft.id, version: 1 }, paused);
+  const draft = (await saved.json()) as any;
+  const response = await request(
+    "/publications",
+    "POST",
+    { draftId: draft.id, version: 1 },
+    paused,
+  );
   assert.equal(response.status, 503);
-  assert.match((await response.json() as any).error, /草稿仍可保存/);
+  assert.match(((await response.json()) as any).error, /草稿仍可保存/);
   assert.equal(requests.length, 0);
-  assert.equal((await db.prepare("SELECT COUNT(*) AS total FROM publications").first()).total, 0);
+  assert.equal(
+    (await db.prepare("SELECT COUNT(*) AS total FROM publications").first())
+      .total,
+    0,
+  );
 });
 
 for (const history of ["diverged", "missing"]) {
@@ -747,19 +798,583 @@ for (const history of ["diverged", "missing"]) {
     test(`old ${failedAfterMerge ? "deployment" : "check"} retry rejects ${history} history without writes`, async () => {
       const draft = await create();
       if (!failedAfterMerge) check = "failure";
-      const first = await (await request("/publications", "POST", { draftId: draft.id, version: 1 })).json() as any;
+      const first = (await (
+        await request("/publications", "POST", {
+          draftId: draft.id,
+          version: 1,
+        })
+      ).json()) as any;
       await waitFor(first.id, "checking");
       await tick();
-      if (failedAfterMerge) { deploy = "failure"; await tick(); }
+      if (failedAfterMerge) {
+        deploy = "failure";
+        await tick();
+      }
       assert.equal((await job(first.id)).status, "failed");
       comparison = history;
       const start = requests.length;
-      const response = await request("/publications", "POST", { draftId: draft.id, version: 1, retry: true });
+      const response = await request("/publications", "POST", {
+        draftId: draft.id,
+        version: 1,
+        retry: true,
+      });
       assert.equal(response.status, 409);
-      assert.match((await response.json() as any).error, /保存草稿为新版本/);
+      assert.match(((await response.json()) as any).error, /保存草稿为新版本/);
       assert.ok(requests.slice(start).every((r) => r.startsWith("GET ")));
       assert.equal((await job(first.id)).status, "failed");
-      assert.equal((await db.prepare("SELECT COUNT(*) AS total FROM publications").first()).total, 1);
+      assert.equal(
+        (await db.prepare("SELECT COUNT(*) AS total FROM publications").first())
+          .total,
+        1,
+      );
     });
   }
 }
+
+const HOME = "source/_data/personal.yml";
+function homeFixture() {
+  return "# personal comments\ndescription: Intro\nprojects:\n  - slug: original\n    title: Original\n    description: First\n    url: https://example.com\n    category: work\n    stack: [TypeScript]\n    custom: preserved\nrecent_focus:\n  - title: Focus\n    description: Original focus\n    tags: [learning]\ntopics: []\n";
+}
+async function manage(path: string, data?: any) {
+  return request("/manage" + path, data === undefined ? "GET" : "POST", data);
+}
+async function publishedSummary() {
+  const data = (await (await manage("")).json()) as any;
+  return data.items.find((x: any) => x.key === "post:" + publicPath);
+}
+async function startDelete(key: string, mode = "trash") {
+  const preview = (await (
+    await manage("/delete-preview", { key })
+  ).json()) as any;
+  const response = await manage("/delete", { key, token: preview.token, mode });
+  assert.ok(
+    response.status === 200 || response.status === 202,
+    JSON.stringify(await response.clone().json()),
+  );
+  return response.json() as Promise<any>;
+}
+async function finishJob(id: string) {
+  await waitFor(id, "checking");
+  await tick();
+  await tick();
+  live = main;
+  await tick();
+  assert.equal((await job(id)).status, "published");
+}
+
+test("management returns one summary per content and loads published bodies only on demand", async () => {
+  const summary = await publishedSummary();
+  assert.equal(summary.state, "已发布");
+  assert.equal(summary.body, undefined);
+  assert.equal(summary.payload, undefined);
+  const opened = (await (
+    await manage("/open", { key: summary.key })
+  ).json()) as any;
+  const modified = await request("/drafts/" + opened.id, "PUT", {
+    version: 1,
+    payload: { ...opened.payload, body: "Device edit" },
+  });
+  assert.equal(modified.status, 200);
+  const list = (await (await manage("")).json()) as any;
+  assert.equal(list.items.filter((x: any) => x.key === summary.key).length, 1);
+  assert.equal(list.items[0].state, "修改待发布");
+  const peek = (await (
+    await manage("/open", { key: summary.key, choice: "published" })
+  ).json()) as any;
+  assert.equal(peek.content.body, "Old body\n");
+  const continued = (await (
+    await manage("/open", { key: summary.key })
+  ).json()) as any;
+  assert.equal(continued.payload.body, "Device edit");
+});
+
+test("unchanged saves do not increment draft versions or append history", async () => {
+  const draft = await create();
+  const response = await request("/drafts/" + draft.id, "PUT", {
+    version: 1,
+    payload: draft.payload,
+  });
+  assert.equal(response.status, 200);
+  assert.equal(((await response.json()) as any).version, 1);
+  assert.equal(
+    (
+      await db
+        .prepare("SELECT COUNT(*) AS n FROM versions WHERE draft_id=?")
+        .bind(draft.id)
+        .first()
+    ).n,
+    1,
+  );
+  assert.equal(
+    (
+      await request("/drafts/" + draft.id, "PUT", {
+        version: 0,
+        payload: draft.payload,
+      })
+    ).status,
+    409,
+  );
+});
+
+test("private trash restores original identity and permanent deletion purges all draft history", async () => {
+  const draft = await create(),
+    key = "post:source/_posts/blog/" + draft.id + ".md";
+  await startDelete(key);
+  assert.equal((await request("/drafts/" + draft.id)).status, 404);
+  const list = (await (await manage("")).json()) as any;
+  assert.equal(list.items.find((x: any) => x.key === key).state, "回收站");
+  const restored = (await (await manage("/restore", { key })).json()) as any;
+  assert.equal(restored.id, draft.id);
+  assert.equal(restored.payload.body, "Private draft");
+  await startDelete(key, "purge");
+  assert.equal(
+    await db.prepare("SELECT id FROM drafts WHERE id=?").bind(draft.id).first(),
+    null,
+  );
+  assert.equal(
+    (
+      await db
+        .prepare("SELECT COUNT(*) AS n FROM versions WHERE draft_id=?")
+        .bind(draft.id)
+        .first()
+    ).n,
+    0,
+  );
+  assert.equal(
+    (await db.prepare("SELECT COUNT(*) AS n FROM trash").first()).n,
+    0,
+  );
+});
+
+test("delete confirmation rejects stale drafts without losing newer text", async () => {
+  const draft = await create(),
+    key = "post:source/_posts/blog/" + draft.id + ".md";
+  const preview = (await (
+    await manage("/delete-preview", { key })
+  ).json()) as any;
+  await request("/drafts/" + draft.id, "PUT", {
+    version: 1,
+    payload: { ...draft.payload, body: "newer" },
+  });
+  assert.equal(
+    (await manage("/delete", { key, token: preview.token, mode: "purge" }))
+      .status,
+    409,
+  );
+  assert.equal(
+    ((await (await request("/drafts/" + draft.id)).json()) as any).payload.body,
+    "newer",
+  );
+});
+
+test("published withdrawal is checked, idempotent and preserves a private recoverable snapshot", async () => {
+  const summary = await publishedSummary();
+  const preview = (await (
+    await manage("/delete-preview", { key: summary.key })
+  ).json()) as any;
+  const [a, b] = await Promise.all([
+    manage("/delete", {
+      key: summary.key,
+      token: preview.token,
+      mode: "trash",
+    }),
+    manage("/delete", {
+      key: summary.key,
+      token: preview.token,
+      mode: "trash",
+    }),
+  ]);
+  const first = (await a.json()) as any,
+    second = (await b.json()) as any;
+  assert.equal(first.jobId, second.jobId);
+  await waitFor(first.jobId, "checking");
+  assert.ok(files.has(publicPath));
+  assert.equal(
+    (await db.prepare("SELECT COUNT(*) AS n FROM trash").first()).n,
+    0,
+  );
+  await finishJob(first.jobId);
+  assert.equal(files.has(publicPath), false);
+  const registry = JSON.parse(
+    files.get("source/_data/content-lifecycle.json")!.source,
+  );
+  assert.equal(registry[summary.key].mode, "trash");
+  const archived = await db
+    .prepare("SELECT * FROM trash WHERE content_key=?")
+    .bind(summary.key)
+    .first();
+  assert.equal(JSON.parse(archived.payload).body, "Old body\n");
+  const restored = (await (
+    await manage("/restore", { key: summary.key })
+  ).json()) as any;
+  const pub = (await (
+    await request("/publications", "POST", {
+      draftId: restored.id,
+      version: restored.version,
+    })
+  ).json()) as any;
+  await finishJob(pub.id);
+  assert.equal(files.get(publicPath)!.source, baseSource);
+  assert.deepEqual(
+    JSON.parse(files.get("source/_data/content-lifecycle.json")!.source),
+    {},
+  );
+  assert.equal(
+    (await db.prepare("SELECT COUNT(*) AS n FROM trash").first()).n,
+    0,
+  );
+});
+
+test("failed deletion never removes current content or reports a completed trash operation", async () => {
+  check = "failure";
+  const summary = await publishedSummary(),
+    del = await startDelete(summary.key);
+  await waitFor(del.jobId, "checking");
+  await tick();
+  assert.equal((await job(del.jobId)).status, "failed");
+  assert.ok(files.has(publicPath));
+  assert.equal(
+    (await db.prepare("SELECT COUNT(*) AS n FROM trash").first()).n,
+    0,
+  );
+});
+
+test("restore refuses occupied original addresses instead of overwriting external edits", async () => {
+  const summary = await publishedSummary(),
+    del = await startDelete(summary.key);
+  await finishJob(del.jobId);
+  files.set(publicPath, {
+    source: baseSource.replace("Old body", "Other author"),
+    sha: "external",
+  });
+  const restored = (await (
+    await manage("/restore", { key: summary.key })
+  ).json()) as any;
+  const pub = (await (
+    await request("/publications", "POST", { draftId: restored.id, version: 1 })
+  ).json()) as any;
+  await waitFor(pub.id, "conflict");
+  assert.match(files.get(publicPath)!.source, /Other author/);
+});
+
+test("permanent deletion clears private snapshots only after a verified live deletion", async () => {
+  const summary = await publishedSummary();
+  const draft = (await (
+    await manage("/open", { key: summary.key })
+  ).json()) as any;
+  const del = await startDelete(summary.key, "purge");
+  await waitFor(del.jobId, "checking");
+  assert.ok(
+    await db.prepare("SELECT id FROM drafts WHERE id=?").bind(draft.id).first(),
+  );
+  await finishJob(del.jobId);
+  assert.equal(files.has(publicPath), false);
+  assert.equal(
+    (await job(del.jobId)).payload,
+    '{"kind":"deleted","title":"已永久删除的内容"}',
+  );
+  assert.equal(
+    await db.prepare("SELECT id FROM drafts WHERE id=?").bind(draft.id).first(),
+    null,
+  );
+  for (const table of ["versions", "conflicts", "trash"])
+    assert.equal(
+      (await db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).first()).n,
+      0,
+    );
+  assert.equal(
+    JSON.parse(files.get("source/_data/content-lifecycle.json")!.source)[
+      summary.key
+    ].mode,
+    "purge",
+  );
+});
+
+test("scoped project publishing merges unrelated newer focus content and preserves unknown YAML", async () => {
+  files.set(HOME, { source: homeFixture(), sha: "home-first" });
+  const created = (await (
+    await manage("/new", { scope: "project" })
+  ).json()) as any;
+  const { selectedEntry } = await import("../shared/content");
+  const item = selectedEntry(created.payload);
+  Object.assign(item, {
+    title: "New project",
+    slug: "new-project",
+    description: "Independent",
+    body: "# Details",
+    stack: ["TS"],
+  });
+  await request("/drafts/" + created.id, "PUT", {
+    version: 1,
+    payload: created.payload,
+  });
+  files.set(HOME, {
+    source: homeFixture().replace("Original focus", "External focus"),
+    sha: "home-other",
+  });
+  const pub = (await (
+    await request("/publications", "POST", { draftId: created.id, version: 2 })
+  ).json()) as any;
+  await finishJob(pub.id);
+  const text = files.get(HOME)!.source;
+  assert.match(text, /External focus/);
+  assert.match(text, /New project/);
+  assert.match(text, /custom: preserved/);
+  assert.match(text, /# personal comments/);
+});
+
+test("same project edits conflict and legacy homepage drafts cannot publish mixed changes", async () => {
+  files.set(HOME, { source: homeFixture(), sha: "home-first" });
+  const row = ((await (await manage("")).json()) as any).items.find(
+    (x: any) => x.type === "project",
+  );
+  const draft = (await (await manage("/open", { key: row.key })).json()) as any;
+  files.set(HOME, {
+    source: homeFixture().replace("title: Original", "title: External"),
+    sha: "changed",
+  });
+  const pub = (await (
+    await request("/publications", "POST", { draftId: draft.id, version: 1 })
+  ).json()) as any;
+  await waitFor(pub.id, "conflict");
+  const { readContent } = await import("../shared/content");
+  const old = (await (
+    await request("/drafts", "POST", {
+      payload: readContent({ path: HOME, source: homeFixture(), sha: "old" }),
+    })
+  ).json()) as any;
+  assert.equal(
+    (await request("/publications", "POST", { draftId: old.id, version: 1 }))
+      .status,
+    409,
+  );
+});
+
+for (const shared of [false, true])
+  test(`published attachment ${shared ? "shared retention" : "private archive and restoration"}`, async () => {
+    const asset =
+        "source/images/uploads/11111111-1111-4111-8111-111111111111.pdf",
+      url = "/" + asset.slice(7),
+      pdf = "%PDF-1.7\nArchive test\n";
+    files.set(publicPath, {
+      source: baseSource + `\n[PDF](${url})\n`,
+      sha: "with-file",
+    });
+    files.set(asset, { source: pdf, sha: "pdf" });
+    if (shared)
+      files.set("source/_posts/blog/shared.md", {
+        source:
+          baseSource.replace("title: Existing", "title: Shared") +
+          `\n[PDF](${url})\n`,
+        sha: "shared",
+      });
+    const row = await publishedSummary(),
+      preview = (await (
+        await manage("/delete-preview", { key: row.key })
+      ).json()) as any;
+    assert.equal(preview.remove.length, shared ? 0 : 1);
+    assert.equal(preview.keep.length, shared ? 1 : 0);
+    const del = await startDelete(row.key);
+    await finishJob(del.jobId);
+    assert.equal(files.has(asset), shared);
+    if (!shared) {
+      const trash = await db
+        .prepare("SELECT * FROM trash WHERE content_key=?")
+        .bind(row.key)
+        .first();
+      const archive = JSON.parse(trash.assets)[0];
+      const bucket = await mf.getR2Bucket("MEDIA");
+      assert.equal(await (await bucket.get(archive.archive))!.text(), pdf);
+      const assetsResponse = await request("/manage/assets?trash=" + trash.id);
+      assert.equal(assetsResponse.status, 200);
+      const assets = (await assetsResponse.json()) as any[];
+      const archivedResponse = await mf.dispatchFetch(
+        "https://studio.test" + assets[0].url,
+        { headers: { Cookie: "studio_session=test-session" } },
+      );
+      assert.equal(
+        archivedResponse.headers.get("Cache-Control"),
+        "private, no-store",
+      );
+      assert.equal(await archivedResponse.text(), pdf);
+      const restored = (await (
+        await manage("/restore", { key: row.key })
+      ).json()) as any;
+      const pub = (await (
+        await request("/publications", "POST", {
+          draftId: restored.id,
+          version: 1,
+        })
+      ).json()) as any;
+      await finishJob(pub.id);
+      assert.equal(files.get(asset)!.source, pdf);
+      assert.equal(await bucket.get(archive.archive), null);
+    }
+  });
+
+test("private permanent deletion removes attachment objects and metadata", async () => {
+  const draft = await create(),
+    key = "post:source/_posts/blog/" + draft.id + ".md",
+    id = "22222222-2222-4222-8222-222222222222";
+  const bucket = await mf.getR2Bucket("MEDIA");
+  await bucket.put(id, "%PDF-1.7\nprivate");
+  await db
+    .prepare(
+      "INSERT INTO media(id,draft_id,name,type,size,created) VALUES(?,?,?,'application/pdf',16,?)",
+    )
+    .bind(id, draft.id, "file.pdf", new Date().toISOString())
+    .run();
+  await startDelete(key, "purge");
+  assert.equal(await bucket.get(id), null);
+  assert.equal(
+    await db.prepare("SELECT id FROM media WHERE id=?").bind(id).first(),
+    null,
+  );
+});
+
+test("management authentication and same-origin rules protect all destructive routes", async () => {
+  for (const endpoint of ["", "/delete", "/restore", "/legacy"]) {
+    assert.equal(
+      (
+        await mf.dispatchFetch("https://studio.test/api/manage" + endpoint, {
+          method: endpoint ? "POST" : "GET",
+          headers: endpoint ? { "Content-Type": "application/json" } : {},
+          body: endpoint ? "{}" : undefined,
+        })
+      ).status,
+      401,
+    );
+  }
+  assert.equal(
+    (
+      await request(
+        "/manage/delete",
+        "POST",
+        { key: "anything", mode: "purge" },
+        { Origin: "https://evil.test" },
+      )
+    ).status,
+    403,
+  );
+});
+
+test("draft identities cannot be changed to another file", async () => {
+  const draft = await create();
+  assert.equal(
+    (
+      await request("/drafts/" + draft.id, "PUT", {
+        version: 1,
+        payload: {
+          ...draft.payload,
+          base: { path: publicPath, sha: "original", source: baseSource },
+        },
+      })
+    ).status,
+    400,
+  );
+});
+
+test("withdrawal retains the newest unpublished changes for recovery", async () => {
+  const row = await publishedSummary(),
+    draft = (await (await manage("/open", { key: row.key })).json()) as any;
+  await request("/drafts/" + draft.id, "PUT", {
+    version: 1,
+    payload: { ...draft.payload, body: "Unpublished work" },
+  });
+  const del = await startDelete(row.key);
+  await finishJob(del.jobId);
+  const restored = (await (
+    await manage("/restore", { key: row.key })
+  ).json()) as any;
+  assert.equal(restored.payload.body, "Unpublished work");
+  const history = (await (
+    await request("/drafts/" + restored.id + "/versions")
+  ).json()) as any[];
+  assert.ok(history.some((v) => v.payload.body === "Unpublished work"));
+});
+
+test("large PDF attachments use the blob API and survive private archival", async () => {
+  const asset =
+      "source/images/uploads/33333333-3333-4333-8333-333333333333.pdf",
+    pdf = "%PDF-1.7\n" + "x".repeat(1050000);
+  files.set(publicPath, {
+    source: baseSource + `\n[PDF](/${asset.slice(7)})\n`,
+    sha: "large-post",
+  });
+  files.set(asset, { source: pdf, sha: "large-pdf" });
+  const row = await publishedSummary(),
+    del = await startDelete(row.key);
+  await finishJob(del.jobId);
+  const trash = await db
+    .prepare("SELECT * FROM trash WHERE content_key=?")
+    .bind(row.key)
+    .first();
+  const archive = JSON.parse(trash.assets)[0];
+  const bucket = await mf.getR2Bucket("MEDIA");
+  assert.equal((await bucket.get(archive.archive))!.size, pdf.length);
+  assert.ok(requests.includes("GET /git/blobs/large-pdf"));
+});
+
+test("permanent project deletion scrubs legacy homepage snapshots while preserving other entries", async () => {
+  files.set(HOME, {
+    source: homeFixture().replace(
+      "    custom: preserved",
+      "    custom: preserved\n    body: SECRET_PROJECT_BODY",
+    ),
+    sha: "home-secret",
+  });
+  const raw = (await import("../shared/content")).readContent({
+    path: HOME,
+    source: files.get(HOME)!.source,
+    sha: "home-secret",
+  });
+  const legacy = (await (
+    await request("/drafts", "POST", { payload: raw })
+  ).json()) as any;
+  const row = ((await (await manage("")).json()) as any).items.find(
+    (x: any) => x.type === "project",
+  );
+  const del = await startDelete(row.key, "purge");
+  await finishJob(del.jobId);
+  const saved = await db
+    .prepare("SELECT payload FROM drafts WHERE id=?")
+    .bind(legacy.id)
+    .first();
+  assert.ok(!saved.payload.includes("SECRET_PROJECT_BODY"));
+  assert.ok(saved.payload.includes("Original focus"));
+  const versions = (
+    await db
+      .prepare("SELECT payload FROM versions WHERE draft_id=?")
+      .bind(legacy.id)
+      .all()
+  ).results;
+  assert.ok(
+    versions.every((v: any) => !v.payload.includes("SECRET_PROJECT_BODY")),
+  );
+});
+
+test("permanent cleanup removes attachment archives left by an earlier failed attempt", async () => {
+  const row = await publishedSummary(),
+    draft = (await (await manage("/open", { key: row.key })).json()) as any,
+    id = crypto.randomUUID(),
+    archive = "trash/failed/fixture";
+  const bucket = await mf.getR2Bucket("MEDIA");
+  await bucket.put(archive, "sensitive attachment");
+  await db
+    .prepare(
+      "INSERT INTO publications(id,draft_id,version,attempt,status,payload,created,updated,result,target_key) VALUES(?,?,1,0,'failed',?,?,?, ?,?)",
+    )
+    .bind(
+      id,
+      draft.id,
+      JSON.stringify(draft.payload),
+      new Date().toISOString(),
+      new Date().toISOString(),
+      JSON.stringify({ assets: [{ archive }] }),
+      row.key,
+    )
+    .run();
+  const del = await startDelete(row.key, "purge");
+  await finishJob(del.jobId);
+  assert.equal(await bucket.get(archive), null);
+});

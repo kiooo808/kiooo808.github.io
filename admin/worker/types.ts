@@ -16,6 +16,10 @@ export interface Env {
   PUBLIC_ORIGIN?: string;
 }
 export type Publication = {
+  action?: string;
+  target_key?: string;
+  trash_id?: string;
+  result?: string | null;
   id: string;
   draft_id: string;
   version: number;

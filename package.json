@@ -7,7 +7,7 @@
     "build": "npm run check:posts && hexo generate --bail",
     "clean": "hexo clean",
     "server": "hexo server",
-    "verify:site": "node --test tools/*.test.cjs && npm run clean && npm run build && npm run check:site"
+    "verify:site": "node --test tools/*.test.cjs && npm run clean && npm run build && npm run check:site && node tools/check-management-site.cjs"
   },
   "hexo": {
     "version": "8.1.1"

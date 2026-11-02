@@ -607,3 +607,5 @@ footer #runtime_span { display: block; margin-top: 8px; font-size: .7rem; line-h
   .space-entries { gap: 6px; padding: 6px; }
   .space-entries .space-nav-tile { font-size: .65rem; }
 }
+
+.space-project-cover{width:80px;height:80px;object-fit:cover;border-radius:16px}.project-detail-cover{max-width:100%;max-height:420px;object-fit:contain;border-radius:16px;margin:24px 0}.project-body{margin-top:32px}

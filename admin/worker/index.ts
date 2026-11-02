@@ -6,8 +6,11 @@ import {
   readContent,
   serializeContent,
   splitArticle,
+  identity,
+  sameContent,
 } from "../shared/content";
 import { readAll, readFile, canonicalUrls, legacyUrl } from "./github";
+import { management } from "./management";
 import { createPublication, processQueue } from "./publish";
 async function limitedBody(request: Request, limit: number) {
   if (Number(request.headers.get("Content-Length")) > limit)
@@ -50,6 +53,15 @@ function validDraft(payload: any): asserts payload is Content {
     (payload.kind === "post" && typeof payload.body !== "string")
   )
     throw new HttpError(400, "草稿格式不正确。");
+  if (
+    payload.kind === "home" &&
+    (!payload.data ||
+      Array.isArray(payload.data) ||
+      typeof payload.data !== "object" ||
+      payload.base?.path !== HOME_PATH ||
+      (payload.scope && !["project", "focus", "intro"].includes(payload.scope)))
+  )
+    throw new HttpError(400, "首页条目格式不正确。");
 }
 async function insertDraft(env: Env, payload: Content) {
   const id = crypto.randomUUID(),
@@ -103,13 +115,27 @@ export async function api(request: Request, env: Env, ctx: ExecutionContext) {
   if (path.startsWith("/api/auth/")) return authRoute(request, env, url);
   await requireUser(request, env);
   if (!["GET", "HEAD"].includes(method)) sameOrigin(request, env);
+  if (path.startsWith("/api/manage")) {
+    if (Number(request.headers.get("Content-Length")) > 2000000)
+      throw new HttpError(413, "请求过大。");
+    return (await management(
+      request,
+      env,
+      ctx,
+      {
+        list: () => contentList(env, url),
+        insert: (payload) => insertDraft(env, payload),
+      },
+      method === "GET" ? {} : await body(request),
+    ))!;
+  }
   if (path === "/api/me")
     return json({ login: env.OWNER_LOGIN, demo: demo(env, url) });
   if (path === "/api/content" && method === "GET")
     return json(await contentList(env, url));
   if (path === "/api/drafts" && method === "GET") {
     const result = await env.DB.prepare(
-      "SELECT * FROM drafts ORDER BY updated DESC",
+      "SELECT * FROM drafts WHERE trashed=0 ORDER BY updated DESC",
     ).all<any>();
     return json(
       result.results.map((row) => ({
@@ -131,6 +157,31 @@ export async function api(request: Request, env: Env, ctx: ExecutionContext) {
     if (draftMatch[2]) {
       if (method !== "GET") throw new HttpError(405, "请求方式不支持。");
       const table = draftMatch[2];
+      const current = await env.DB.prepare(
+        "SELECT payload FROM drafts WHERE id=?",
+      )
+        .bind(id)
+        .first<any>();
+      if (!current) throw new HttpError(404, "草稿不存在。");
+      const key = identity(JSON.parse(current.payload), id);
+      const related = (
+        await env.DB.prepare("SELECT id,payload FROM drafts").all<any>()
+      ).results
+        .filter((d) => identity(JSON.parse(d.payload), d.id) === key)
+        .map((d) => d.id);
+      if (table === "versions") {
+        const result = await env.DB.prepare(
+          `SELECT * FROM versions WHERE draft_id IN (${related.map(() => "?").join(",")}) ORDER BY created DESC,version DESC LIMIT 100`,
+        )
+          .bind(...related)
+          .all<any>();
+        return json(
+          result.results.map((row) => ({
+            ...row,
+            payload: JSON.parse(row.payload),
+          })),
+        );
+      }
       const result = await env.DB.prepare(
         `SELECT * FROM ${table} WHERE draft_id=? ORDER BY ${table === "versions" ? "version" : "created"} DESC LIMIT 100`,
       )
@@ -146,12 +197,31 @@ export async function api(request: Request, env: Env, ctx: ExecutionContext) {
     const draft = await env.DB.prepare("SELECT * FROM drafts WHERE id=?")
       .bind(id)
       .first<any>();
-    if (!draft) throw new HttpError(404, "草稿不存在。");
+    if (!draft || draft.trashed)
+      throw new HttpError(404, "草稿不存在或已在回收站中。");
     if (method === "GET")
       return json({ ...draft, payload: JSON.parse(draft.payload) });
     if (method === "PUT") {
       const value = await body(request);
       validDraft(value.payload);
+      const key = identity(JSON.parse(draft.payload), id);
+      if (identity(value.payload, id) !== key)
+        throw new HttpError(400, "不能更改内容身份或文件路径。");
+      const deleting = await env.DB.prepare(
+        "SELECT id FROM publications WHERE target_key=? AND action!='publish' AND status IN ('queued','checking','deploying','verifying')",
+      )
+        .bind(key)
+        .first();
+      if (deleting)
+        throw new HttpError(
+          409,
+          "内容正在删除，不能覆盖保存；请先导出本机未同步内容。",
+        );
+      if (
+        value.version === draft.version &&
+        sameContent(JSON.parse(draft.payload), value.payload)
+      )
+        return json({ ...draft, payload: JSON.parse(draft.payload) });
       const text = JSON.stringify(value.payload),
         next = Number(value.version) + 1,
         updated = now();
@@ -159,7 +229,7 @@ export async function api(request: Request, env: Env, ctx: ExecutionContext) {
         throw new HttpError(400, "草稿版本号不正确。");
       const results = await env.DB.batch([
         env.DB.prepare(
-          "UPDATE drafts SET payload=?,version=?,updated=? WHERE id=? AND version=?",
+          "UPDATE drafts SET payload=?,version=?,updated=? WHERE id=? AND version=? AND trashed=0",
         ).bind(text, next, updated, id, value.version),
         env.DB.prepare(
           "INSERT OR IGNORE INTO versions(draft_id,version,payload,created) SELECT id,version,payload,updated FROM drafts WHERE id=? AND version=? AND payload=?",
@@ -210,7 +280,7 @@ export async function api(request: Request, env: Env, ctx: ExecutionContext) {
       draftId = url.searchParams.get("draft");
     if (
       !draftId ||
-      !(await env.DB.prepare("SELECT id FROM drafts WHERE id=?")
+      !(await env.DB.prepare("SELECT id FROM drafts WHERE id=? AND trashed=0")
         .bind(draftId)
         .first())
     )
@@ -285,7 +355,11 @@ export async function api(request: Request, env: Env, ctx: ExecutionContext) {
       jobs.results.map(({ payload, before_payload, ...job }) => ({
         ...job,
         title: JSON.parse(payload).title,
-        canRestore: !!before_payload,
+        operation: JSON.parse(payload).restoreId
+          ? "restore"
+          : job.action || "publish",
+        canRestore:
+          !!before_payload && (!job.action || job.action === "publish"),
       })),
     );
   }
@@ -310,7 +384,7 @@ export async function api(request: Request, env: Env, ctx: ExecutionContext) {
   );
   if (restoreMatch && method === "POST") {
     const job = await env.DB.prepare(
-      "SELECT * FROM publications WHERE id=? AND status='published'",
+      "SELECT * FROM publications WHERE id=? AND status='published' AND action='publish'",
     )
       .bind(restoreMatch[1])
       .first<any>();
