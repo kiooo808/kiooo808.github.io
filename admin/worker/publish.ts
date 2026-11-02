@@ -119,13 +119,34 @@ export async function createPublication(
     content.data.focus_updated = new Date().toLocaleDateString("sv-SE", {
       timeZone: "Asia/Shanghai",
     });
-  const existing = await env.DB.prepare(
+  let existing = await env.DB.prepare(
     "SELECT * FROM publications WHERE draft_id=? AND version=? ORDER BY attempt DESC LIMIT 1",
   )
     .bind(id, version)
     .first<Publication>();
   if (existing && (!retry || !["failed", "conflict"].includes(existing.status)))
     return existing;
+  if (existing && !existing.merge_sha) {
+    const active = await env.DB.prepare(
+      "SELECT * FROM publications WHERE target_key=? AND status IN ('queued','checking','deploying','verifying')",
+    ).bind(existing.target_key || identity(content, id)).first<Publication>();
+    if (active) return active;
+    // A PR may have been merged outside the queue after its checks failed.
+    // Find that exact immutable attempt, even if a later retry failed before
+    // creating a PR because the file was already deleted from main.
+    const attempts = (await env.DB.prepare(
+      "SELECT * FROM publications WHERE draft_id=? AND version=? AND pr IS NOT NULL ORDER BY attempt DESC",
+    ).bind(id, version).all<Publication>()).results;
+    for (const attempt of attempts) {
+      const pr = await gh(env, `/pulls/${attempt.pr}`);
+      if (!pr.merged) continue;
+      if (pr.head.sha !== attempt.head || !pr.merge_commit_sha ||
+          !JSON.parse(attempt.result || "{}").expected?.length)
+        throw new HttpError(409, "已合并请求的版本或核对记录不匹配，请重新载入内容。");
+      existing = { ...attempt, merge_sha: pr.merge_commit_sha };
+      break;
+    }
+  }
   const previousHead = existing?.merge_sha || existing?.base_head;
   if (existing && previousHead) {
     const staleHistory = () =>
@@ -147,6 +168,9 @@ export async function createPublication(
     }
   }
   if (existing?.merge_sha) {
+    if (existing.result && !(await verifyApplied(env, existing, existing.merge_sha)))
+      throw new HttpError(409, "已合并内容与所选版本不一致，不能继续原任务。");
+    await updateJob(env, existing.id, { merge_sha: existing.merge_sha });
     const runs = await gh(
       env,
       `/actions/workflows/deploy.yml/runs?head_sha=${existing.merge_sha}&event=push`,

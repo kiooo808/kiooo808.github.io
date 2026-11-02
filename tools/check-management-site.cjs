@@ -35,6 +35,9 @@ try {
   const source =
     "---\ntitle: Management fixture\ndate: 2026-01-01 12:00:00\nsection: blog\npermalink: management-fixture/\n---\n\nFixture body only.\n";
   const registry = path.join(work, "source/_data/content-lifecycle.json");
+  const existingRegistry = fs.existsSync(registry)
+    ? JSON.parse(fs.readFileSync(registry, "utf8"))
+    : {};
   const homeFile = path.join(work, "source/_data/personal.yml");
   const home = yaml.parseDocument(fs.readFileSync(homeFile, "utf8"));
   home
@@ -49,6 +52,7 @@ try {
       stack: ["Fixture"],
     });
   fs.writeFileSync(homeFile, home.toString());
+  fs.mkdirSync(path.dirname(path.join(work, post)), { recursive: true });
   fs.writeFileSync(path.join(work, post), source);
   const legacyFile = path.join(work, "tools/legacy-urls.json");
   const legacy = JSON.parse(fs.readFileSync(legacyFile, "utf8"));
@@ -100,7 +104,7 @@ try {
   fs.unlinkSync(path.join(work, post));
   fs.writeFileSync(
     registry,
-    JSON.stringify({ [key]: { url, mode: "trash", retired: [] } }),
+    JSON.stringify({ ...existingRegistry, [key]: { url, mode: "trash", retired: [] } }),
   );
   run("withdrawn notice");
   let html = fs.readFileSync(
@@ -116,14 +120,14 @@ try {
   );
   fs.writeFileSync(
     registry,
-    JSON.stringify({ [key]: { url, mode: "purge", retired: [] } }),
+    JSON.stringify({ ...existingRegistry, [key]: { url, mode: "purge", retired: [] } }),
   );
   run("permanent deletion");
   assert(
     !fs.existsSync(path.join(work, "public/management-fixture/index.html")),
   );
   fs.writeFileSync(path.join(work, post), source);
-  fs.writeFileSync(registry, "{}");
+  fs.writeFileSync(registry, JSON.stringify(existingRegistry));
   run("restored original address");
   assert(
     fs

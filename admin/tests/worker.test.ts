@@ -1039,6 +1039,66 @@ test("failed deletion never removes current content or reports a completed trash
   );
 });
 
+for (const mode of ["trash", "purge"]) {
+  test(`retry resumes an externally merged ${mode} after a later missing-file retry`, async () => {
+    check = "failure";
+    const summary = await publishedSummary();
+    const del = await startDelete(summary.key, mode);
+    await waitFor(del.jobId, "checking");
+    await tick();
+    const failed = await job(del.jobId);
+    assert.equal(failed.status, "failed");
+    // Simulate a repository owner merging the exact PR outside the worker.
+    await remote(new Request(`https://api.github.com/repos/kiooo808/kiooo808.github.io/pulls/${failed.pr}/merge`, {
+      method: "PUT",
+      body: JSON.stringify({ sha: failed.head, merge_method: "squash" }),
+    }));
+    assert.equal(files.has(publicPath), false);
+    // Persisted state left by the previous release's retry of the removed file.
+    await db.prepare(`INSERT INTO publications(id,draft_id,version,attempt,status,payload,created,updated,action,target_key,trash_id)
+      SELECT 'obsolete-retry',draft_id,version,1,'failed',payload,created,updated,action,target_key,trash_id FROM publications WHERE id=?`)
+      .bind(failed.id).run();
+    await db.prepare("UPDATE publications SET created=? WHERE id='obsolete-retry'")
+      .bind(new Date(Date.now() + 1000).toISOString()).run();
+    const response = await request("/publications", "POST", {
+      draftId: failed.draft_id, version: failed.version, retry: true,
+    });
+    assert.equal(response.status, 202);
+    assert.equal(((await response.json()) as any).id, failed.id);
+    assert.equal(prs.length, 1);
+    assert.equal((await job(failed.id)).merge_sha, main);
+    const list = (await (await manage("")).json()) as any;
+    assert.equal(list.items.find((item: any) => item.key === summary.key).state, "删除处理中");
+    assert.ok(await db.prepare("SELECT id FROM drafts WHERE id=?").bind(failed.draft_id).first());
+    live = main;
+    for (let i=0; i<4 && (await job(failed.id)).status !== "published"; i++) await tick();
+    assert.equal((await job(failed.id)).status, "published");
+    if (mode === "trash") {
+      assert.equal((await db.prepare("SELECT COUNT(*) AS n FROM trash").first()).n, 1);
+    } else {
+      assert.equal(await job("obsolete-retry"), null);
+      assert.equal(await db.prepare("SELECT id FROM drafts WHERE id=?").bind(failed.draft_id).first(), null);
+      assert.equal(JSON.parse((await job(failed.id)).result).deleted, true);
+    }
+  });
+}
+
+test("retry refuses an externally merged PR whose head differs from the deletion snapshot", async () => {
+  check = "failure";
+  const summary = await publishedSummary();
+  const del = await startDelete(summary.key, "purge");
+  await waitFor(del.jobId, "checking");
+  await tick();
+  const failed = await job(del.jobId);
+  Object.assign(prs[0], { merged: true, head: { sha: "different-content" }, merge_commit_sha: "other-merge" });
+  const before = requests.length;
+  const response = await request("/publications", "POST", { draftId: failed.draft_id, version: failed.version, retry: true });
+  assert.equal(response.status, 409);
+  assert.equal((await job(failed.id)).status, "failed");
+  assert.ok(files.has(publicPath));
+  assert.ok(!requests.slice(before).some(r => /^(POST|PATCH|PUT|DELETE) /.test(r)));
+});
+
 test("restore refuses occupied original addresses instead of overwriting external edits", async () => {
   const summary = await publishedSummary(),
     del = await startDelete(summary.key);

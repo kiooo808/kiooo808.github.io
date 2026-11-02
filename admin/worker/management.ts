@@ -145,12 +145,22 @@ export async function management(
     if (!row.draft) row.draft = draft;
     map.set(key, row);
   }
+  // Main can already contain a deletion while Pages still serves the old site.
+  // Keep the in-flight operation visible until its deployment is verified.
+  for (const job of state.jobs) {
+    if (job.action === "publish" || !job.target_key || map.has(job.target_key) ||
+        !["queued", "checking", "deploying", "verifying"].includes(job.status)) continue;
+    const value = JSON.parse(job.payload);
+    if (value.kind === "post" || value.kind === "home")
+      map.set(job.target_key, { published: value });
+  }
   const items = [...map].map(([key, row]) => {
     const value = row.draft?.payload || row.published;
     const entry = summary(key, value, row.published, row.draft),
-      job = state.jobs.find(
+      relatedJobs = state.jobs.filter(
         (j) => j.target_key === key || j.draft_id === row.draft?.id,
-      );
+      ),
+      job = relatedJobs.find((j) => ["queued", "checking", "deploying", "verifying"].includes(j.status)) || relatedJobs[0];
     if (
       job &&
       ["queued", "checking", "deploying", "verifying"].includes(job.status)
