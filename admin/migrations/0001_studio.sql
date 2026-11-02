@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY, expires INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS oauth_states (id TEXT PRIMARY KEY, verifier TEXT NOT NULL, expires INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS drafts (id TEXT PRIMARY KEY, kind TEXT NOT NULL, payload TEXT NOT NULL, version INTEGER NOT NULL, updated TEXT NOT NULL, published_version INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE IF NOT EXISTS versions (draft_id TEXT NOT NULL, version INTEGER NOT NULL, payload TEXT NOT NULL, created TEXT NOT NULL, PRIMARY KEY(draft_id,version));
+CREATE TABLE IF NOT EXISTS conflicts (id TEXT PRIMARY KEY, draft_id TEXT NOT NULL, payload TEXT NOT NULL, created TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS media (id TEXT PRIMARY KEY, draft_id TEXT NOT NULL, name TEXT NOT NULL, type TEXT NOT NULL, size INTEGER NOT NULL, created TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS publications (id TEXT PRIMARY KEY, draft_id TEXT NOT NULL, version INTEGER NOT NULL, attempt INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL, payload TEXT NOT NULL, before_payload TEXT, branch TEXT, head TEXT, base_head TEXT, pr INTEGER, merge_sha TEXT, error TEXT, created TEXT NOT NULL, updated TEXT NOT NULL, UNIQUE(draft_id,version,attempt));
+CREATE TABLE IF NOT EXISTS leases (id TEXT PRIMARY KEY, token TEXT NOT NULL, expires INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS demo_content (path TEXT PRIMARY KEY, content TEXT NOT NULL, sha TEXT NOT NULL, url TEXT);
+CREATE INDEX IF NOT EXISTS publication_state ON publications(status,created);
