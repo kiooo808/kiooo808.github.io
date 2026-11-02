@@ -85,6 +85,15 @@ test("homepage updates preserve topics, exclusions, comments and unrelated field
   value.data.recent_focus = [
     { title: "Updated", description: "Updated focus", tags: [] },
   ];
+  // New rich projects may have an introduction without an external app link
+  // or an automatic article category. Preserve them during legacy round trips.
+  value.data.projects.push({
+    id: "optional-project",
+    slug: "optional-project",
+    title: "Project introduction",
+    description: "Standalone project details",
+    stack: [],
+  });
   const next = serializeContent(value, "unused");
   const parsed = readContent({
     path: next.path,
@@ -97,6 +106,7 @@ test("homepage updates preserve topics, exclusions, comments and unrelated field
   assert.deepEqual(parsed.data.home_exclude, value.data.home_exclude);
   assert.ok(next.source.includes("# Public topic summaries"));
   assert.equal(parsed.data.recent_focus[0].title, "Updated");
+  assert.deepEqual(parsed.data.projects, value.data.projects);
 });
 test("import and export retain unknown metadata and special body without locking new article date", () => {
   const source =
