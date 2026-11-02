@@ -1032,14 +1032,9 @@ function SeparatedInput({
     <input
       value={text}
       onChange={(e) => setText(e.target.value)}
-      onBlur={() =>
-        onChange(
-          text
-            .split(pattern)
-            .map((s) => s.trim())
-            .filter(Boolean),
-        )
-      }
+      onBlur={() => {
+        if(text!==joined) onChange(text.split(pattern).map(s=>s.trim()).filter(Boolean));
+      }}
     />
   );
 }

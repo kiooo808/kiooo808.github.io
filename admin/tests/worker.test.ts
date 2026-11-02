@@ -1378,3 +1378,19 @@ test("permanent cleanup removes attachment archives left by an earlier failed at
   await finishJob(del.jobId);
   assert.equal(await bucket.get(archive), null);
 });
+
+
+test("legacy project import keeps its private attachment usable without publishing other home edits",async()=>{
+ files.set(HOME,{source:homeFixture(),sha:"home-first"});
+ const {readContent,selectedEntry}=await import("../shared/content");
+ const value=readContent({path:HOME,sha:"home-first",source:homeFixture()}) as any;
+ const old=await (await request("/drafts","POST",{payload:value})).json() as any,id="44444444-4444-4444-8444-444444444444";
+ const pdf="%PDF-1.7\nLegacy attachment";const bucket=await mf.getR2Bucket("MEDIA");await bucket.put(id,pdf);
+ await db.prepare("INSERT INTO media(id,draft_id,name,type,size,created) VALUES(?,?,?,'application/pdf',?,?)").bind(id,old.id,"old.pdf",pdf.length,new Date().toISOString()).run();
+ value.data.projects[0].body=`[old.pdf](/api/media/${id})`;value.data.recent_focus[0].description="PRIVATE_OTHER_EDIT";
+ await request("/drafts/"+old.id,"PUT",{version:1,payload:value});
+ const imported=await (await manage("/legacy",{id:old.id,scope:"project",entryId:"original"})).json() as any;
+ assert.match(selectedEntry(imported.payload).body,/api\/media/);
+ const pub=await (await request("/publications","POST",{draftId:imported.id,version:1})).json() as any;await finishJob(pub.id);
+ assert.ok(!files.get(HOME)!.source.includes("PRIVATE_OTHER_EDIT"));assert.match(files.get(HOME)!.source,/images\/uploads\/44444444/);
+});

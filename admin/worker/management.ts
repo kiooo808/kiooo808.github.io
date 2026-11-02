@@ -245,7 +245,13 @@ export async function management(
     if (!selected || !state.home) throw new HttpError(400, "请选择条目。");
     // Keep the original public baseline; importing never publishes other draft changes.
     selected.base = draft.payload.base;
-    return json(await deps.insert(selected), 201);
+    const imported=await deps.insert(selected);
+    const reference=selected.scope==="intro"?"":JSON.stringify(selectedEntry(selected));
+    for(const match of reference.matchAll(/\/api\/media\/([0-9a-f-]{36})/g)) {
+      const owned=await env.DB.prepare("SELECT id FROM media WHERE id=? AND (draft_id=? OR id IN (SELECT media_id FROM media_links WHERE draft_id=?))").bind(match[1],draft.id,draft.id).first();
+      if(owned) await env.DB.prepare("INSERT OR IGNORE INTO media_links(draft_id,media_id) VALUES(?,?)").bind(imported.id,match[1]).run();
+    }
+    return json(imported,201);
   }
   const row = map.get(data.key),
     item = items.find((x) => x.key === data.key),
