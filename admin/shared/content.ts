@@ -190,13 +190,12 @@ export function validateContent(value: Content) {
       if (
         !p.title?.trim() ||
         !p.description?.trim() ||
-        !p.category?.trim() ||
         !Array.isArray(p.stack) ||
         !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(p.slug) ||
         slugs.has(p.slug)
       )
         throw new Error("项目需要完整信息和唯一英文短名。");
-      if (!/^(?:\/(?!\/)|https:\/\/)/.test(p.url))
+      if (p.url && !/^(?:\/(?!\/)|https:\/\/)/.test(p.url))
         throw new Error("项目链接需以 / 或 https:// 开头。");
       slugs.add(p.slug);
     }
