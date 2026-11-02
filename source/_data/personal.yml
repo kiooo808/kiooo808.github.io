@@ -48,6 +48,32 @@ projects:
       - JavaScript
       - 本地存储
     id: englishapp
+  - id: e6a11e49-e2b8-4d2c-bf0c-f93f95505ee3
+    title: 工作台升级验收（临时测试）
+    slug: studio-management-check-20261102
+    label: 功能验收
+    description: 临时验收项目：验证图文发布、撤下与恢复，完成后移入回收站。
+    body: |
+      ## 图文内容验收
+
+      这是独立的临时测试项目。
+
+      - 验证项目详情与附件
+      - 验证撤下后原地址提示
+      - 验证恢复时保留原地址
+
+
+      [studio-check.pdf](/images/uploads/1cb415f8-efdd-4d26-a5a2-fb67f0407f15.pdf)
+    cover: /images/uploads/f4553f1e-c49c-4ba9-969a-db169e2c910c.png
+    status: 进行中
+    url: ""
+    category: ""
+    stack:
+      - Markdown
+      - 图片
+      - PDF
+    related_posts: []
+    order: 1
 # Do not recommend test/unfinished posts on the homepage. They remain published.
 home_exclude:
   - 日记/26-10-26 日记.md
