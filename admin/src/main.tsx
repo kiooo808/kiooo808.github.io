@@ -458,13 +458,16 @@ function EditorPane({
         return result;
       } catch (e) {
         if (mounted.current) {
-          if (e instanceof ApiError && e.status === 409) {
+          if (e instanceof ApiError && e.status === 409 && e.data.latest) {
             setConflict(e.data.latest);
             setSaveState("有版本冲突，两个版本均已保留");
           } else if (e instanceof ApiError && e.status === 401) {
             setSaveState("登录已过期，本机修改已保留");
             setMessage("请在另一标签页重新登录，再回来重试保存。");
-          } else setSaveState("离线或保存失败，修改已暂存在本机");
+          } else {
+            setSaveState("保存失败，修改已暂存在本机");
+            setMessage((e as Error).message);
+          }
         }
         return undefined;
       } finally {

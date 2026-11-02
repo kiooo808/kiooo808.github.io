@@ -407,6 +407,52 @@ test("autosave uses optimistic concurrency and preserves both conflict versions"
   assert.equal(copies[0].payload.title, "Device two");
   assert.equal(requests.length, 0);
 });
+test("new drafts can change section and retain their content and version history", async () => {
+  const draft = await create();
+  let version = draft.version;
+  for (const section of ["diary", "knowledge", "blog"]) {
+    const response = await request("/drafts/" + draft.id, "PUT", {
+      version,
+      payload: { ...draft.payload, section },
+    });
+    assert.equal(response.status, 200);
+    const saved = (await response.json()) as any;
+    assert.equal(saved.id, draft.id);
+    assert.equal(saved.payload.section, section);
+    assert.equal(saved.payload.body, draft.payload.body);
+    assert.equal(saved.version, ++version);
+    const reopened = (await (await request("/drafts/" + draft.id)).json()) as any;
+    assert.deepEqual(reopened.payload, saved.payload);
+  }
+  const history = (await (await request("/drafts/" + draft.id + "/versions")).json()) as any[];
+  assert.equal(history.length, 4);
+  assert.equal(requests.length, 0);
+});
+
+test("changing section cannot assign a file path or change the content kind", async () => {
+  const draft = await create();
+  for (const payload of [
+    { ...draft.payload, section: "diary", base: { path: publicPath, sha: "existing-sha", source: baseSource } },
+    { kind: "home", title: "Home", data: {}, base: { path: "source/_data/personal.yml" } },
+    { ...draft.payload, section: "invalid" },
+  ]) {
+    const response = await request("/drafts/" + draft.id, "PUT", { version: 1, payload });
+    assert.equal(response.status, 400);
+  }
+});
+
+test("drafts with publication history keep their target path when changing section", async () => {
+  const draft = await create();
+  await db.prepare("INSERT INTO publications(id,draft_id,version,status,payload,created,updated) VALUES(?,?,1,'failed',?,?,?)")
+    .bind("section-publication", draft.id, JSON.stringify(draft.payload), "2026-11-02", "2026-11-02").run();
+  const response = await request("/drafts/" + draft.id, "PUT", {
+    version: 1,
+    payload: { ...draft.payload, section: "diary" },
+  });
+  assert.equal(response.status, 400);
+  assert.match(((await response.json()) as any).error, /已发起过发布/);
+});
+
 test("attachments require auth, validate file magic, and stay private until publication", async () => {
   const d = await create();
   const bytes = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10, 0]);

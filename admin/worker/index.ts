@@ -204,9 +204,25 @@ export async function api(request: Request, env: Env, ctx: ExecutionContext) {
     if (method === "PUT") {
       const value = await body(request);
       validDraft(value.payload);
-      const key = identity(JSON.parse(draft.payload), id);
-      if (identity(value.payload, id) !== key)
-        throw new HttpError(400, "不能更改内容身份或文件路径。");
+      const previous = JSON.parse(draft.payload) as Content;
+      const key = identity(previous, id);
+      if (identity(value.payload, id) !== key) {
+        // A new article has no file yet; its section only selects its future path.
+        const changingSection =
+          previous.kind === "post" &&
+          value.payload.kind === "post" &&
+          !previous.base &&
+          !value.payload.base &&
+          !draft.published_version &&
+          ["blog", "knowledge", "diary"].includes(value.payload.section);
+        if (!changingSection)
+          throw new HttpError(400, "不能更改内容身份或文件路径。");
+        const publication = await env.DB.prepare(
+          "SELECT id FROM publications WHERE draft_id=? LIMIT 1",
+        ).bind(id).first();
+        if (publication)
+          throw new HttpError(400, "这份草稿已发起过发布，不能更改文件分区。请新建草稿后复制内容。");
+      }
       const deleting = await env.DB.prepare(
         "SELECT id FROM publications WHERE target_key=? AND action!='publish' AND status IN ('queued','checking','deploying','verifying')",
       )
