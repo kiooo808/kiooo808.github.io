@@ -1,0 +1,59 @@
+name: Deploy Hexo
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages-production
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    uses: ./.github/workflows/verify.yml
+  deploy:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+      pages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check that this is still the current main revision
+        id: current
+        shell: bash
+        run: |
+          if [ "$(git ls-remote origin refs/heads/main | cut -f1)" = "$GITHUB_SHA" ]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/download-artifact@v4
+        if: steps.current.outputs.deploy == 'true'
+        with:
+          name: hexo-site-${{ github.sha }}
+          path: public
+      - name: Recover a stale completed Pages deployment
+        if: steps.current.outputs.deploy == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SITE_URL: https://kiooo808.github.io
+        run: node tools/deploy/recover-stale-pages.cjs
+      - name: Deploy verified output
+        if: steps.current.outputs.deploy == 'true'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          publish_branch: gh-pages
+      - name: Wait for GitHub Pages and verify the live revision
+        if: steps.current.outputs.deploy == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SITE_URL: https://kiooo808.github.io
+        run: node tools/deploy/wait-for-pages.cjs
