@@ -11,6 +11,8 @@ async function waitForPages(
   } = {},
 ) {
   let recovered = false;
+  const startedAt = Date.now();
+  console.log(`Waiting for Pages: revision=${revision}, max_attempts=${attempts}, interval=15s`);
   for (let attempt = 0; attempt < attempts; attempt++) {
     let live;
     try {
@@ -45,12 +47,17 @@ async function waitForPages(
           run.name,
         ),
     );
+    console.log(
+      `Pages check ${attempt + 1}/${attempts}: live_revision=${live?.commit || "unavailable"}, workflow=${run?.status || "not-found"}/${run?.conclusion || "pending"}, elapsed=${Math.round((Date.now() - startedAt) / 1000)}s`,
+    );
     if (
       live?.commit === revision &&
       run?.status === "completed" &&
       run.conclusion === "success"
-    )
+    ) {
+      console.log(`Pages confirmed after ${Math.round((Date.now() - startedAt) / 1000)}s.`);
       return;
+    }
     if (run?.status === "completed" && run.conclusion !== "success") {
       if (
         !recovered &&
