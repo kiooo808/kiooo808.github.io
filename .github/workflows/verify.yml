@@ -9,6 +9,37 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Detect content-only publishing
+        id: changes
+        shell: bash
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          echo "content_only=false" >> "$GITHUB_OUTPUT"
+          if [[ "$EVENT_NAME" != "push" || ! "$BEFORE_SHA" =~ ^[0-9a-f]{40}$ || "$BEFORE_SHA" =~ ^0+$ ]]; then
+            echo "Full verification: not a comparable push."
+            exit 0
+          fi
+          if ! git cat-file -e "$BEFORE_SHA^{commit}" 2>/dev/null; then
+            echo "Full verification: previous commit unavailable."
+            exit 0
+          fi
+          changed="$(git diff --name-only "$BEFORE_SHA" "$GITHUB_SHA")"
+          if [[ -z "$changed" ]]; then
+            echo "Full verification: no changed files."
+            exit 0
+          fi
+          while IFS= read -r file; do
+            case "$file" in
+              source/_posts/*) ;;
+              *) echo "Full verification: changed $file"; exit 0 ;;
+            esac
+          done <<< "$changed"
+          echo "content_only=true" >> "$GITHUB_OUTPUT"
+          echo "Content-only publishing: skipping admin build and admin unit tests."
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -18,9 +49,18 @@ jobs:
             admin/package-lock.json
       - run: npm ci
       - run: npm ci --prefix admin
-      - run: npm run build --prefix admin
-      - run: npm test --prefix admin
-      - run: npm run verify:site
+      - name: Build admin
+        if: steps.changes.outputs.content_only != 'true'
+        run: npm run build --prefix admin
+      - name: Test admin
+        if: steps.changes.outputs.content_only != 'true'
+        run: npm test --prefix admin
+      - name: Verify generated website
+        run: |
+          echo "Site verification started at $(date -u +%FT%TZ)"
+          start=$SECONDS
+          npm run verify:site
+          echo "Site verification took $((SECONDS - start)) seconds"
       - uses: actions/upload-artifact@v4
         with:
           name: hexo-site-${{ github.sha }}
