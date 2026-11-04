@@ -19,6 +19,33 @@ const MarkdownEditor = lazy(() =>
 import { ManagePanel } from "./ManagePanel";
 import { Preview } from "./Preview";
 import "./style.css";
+// Compress still photos before sending them to the media API. Keep the original
+// whenever decoding fails, the browser lacks WebP support, or output is larger.
+async function prepareImageUpload(file: File): Promise<File> {
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) return file;
+  try {
+    const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+    try {
+      const scale = Math.min(1, 1920 / Math.max(bitmap.width, bitmap.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+      canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+      const context = canvas.getContext("2d");
+      if (!context) return file;
+      context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, "image/webp", 0.82),
+      );
+      if (!blob || blob.type !== "image/webp" || blob.size >= file.size) return file;
+      const name = file.name.replace(/\.[^.]+$/, "") + ".webp";
+      return new File([blob], name, { type: "image/webp", lastModified: file.lastModified });
+    } finally {
+      bitmap.close();
+    }
+  } catch {
+    return file;
+  }
+}
 type Draft = {
   id: string;
   payload: Content;
@@ -501,14 +528,21 @@ function EditorPane({
     timer.current = setTimeout(() => void persistRef.current(), 2000);
   }
   async function upload(file: File) {
-    if (file.size > 10 * 1024 * 1024) throw new Error("附件不能超过 10MB。");
+    const started = performance.now();
+    const prepared = await prepareImageUpload(file);
+    if (prepared.size > 10 * 1024 * 1024) throw new Error("附件不能超过 10MB。");
     const response = await api("/media?draft=" + draft.id, {
       method: "POST",
       headers: {
-        "Content-Type": file.type,
-        "X-File-Name": encodeURIComponent(file.name),
+        "Content-Type": prepared.type,
+        "X-File-Name": encodeURIComponent(prepared.name),
       },
-      body: file,
+      body: prepared,
+    });
+    console.info("[Media upload]", {
+      originalBytes: file.size,
+      uploadedBytes: prepared.size,
+      elapsedMs: Math.round(performance.now() - started),
     });
     return response.url as string;
   }
