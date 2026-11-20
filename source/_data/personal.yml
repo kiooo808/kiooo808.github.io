@@ -1,14 +1,7 @@
 description: 项目、笔记，还有日常。
-focus_updated: '2026-11-01'
+focus_updated: '2026-11-21'
 # Public topic summaries curated from recent conversations; no chat text or links.
 recent_focus:
-  - title: 双轮自平衡小车
-    description: 梳理控制代码，继续关注直线行驶与转向闭环。
-    tags:
-      - STM32
-      - MPU6050
-      - 编码器
-    id: legacy-0-双轮自平衡小车
   - title: K230 机器视觉
     description: 关注 YOLO 训练、模型转换和板端推理。
     tags:
@@ -23,6 +16,12 @@ recent_focus:
       - 电路设计
       - "0603"
     id: legacy-2-STM32 最小系统板
+  - id: 7325d7c4-785d-4048-bef6-6edcdc53e21b
+    title: STM32 无人机
+    description: 完成飞控 PCB 设计并下单，准备焊接测试，同时研究无线通信、电机驱动和传感器。
+    tags:
+      - 嵌入式开发
+    order: 1
 topics:
   - name: 电气控制
     category: 电气控制技术
