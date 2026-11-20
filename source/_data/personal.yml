@@ -2,13 +2,6 @@ description: 项目、笔记，还有日常。
 focus_updated: '2026-11-21'
 # Public topic summaries curated from recent conversations; no chat text or links.
 recent_focus:
-  - title: K230 机器视觉
-    description: 关注 YOLO 训练、模型转换和板端推理。
-    tags:
-      - K230
-      - YOLO
-      - CanMV
-    id: legacy-1-K230 机器视觉
   - title: STM32 最小系统板
     description: 整理器件选型，完善最小系统板的元件清单。
     tags:
@@ -22,6 +15,11 @@ recent_focus:
     tags:
       - 嵌入式开发
     order: 1
+  - id: 1010e82d-3541-479d-a025-7135fcb84de9
+    title: 电子硬件与工业自动化
+    description: 深入学习 PCB 设计、元器件选型、PLC 编程及机器人控制，提升独立完成工程项目的能力。
+    tags: []
+    order: 2
 topics:
   - name: 电气控制
     category: 电气控制技术
