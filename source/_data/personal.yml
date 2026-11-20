@@ -2,13 +2,6 @@ description: 项目、笔记，还有日常。
 focus_updated: '2026-11-21'
 # Public topic summaries curated from recent conversations; no chat text or links.
 recent_focus:
-  - title: STM32 最小系统板
-    description: 整理器件选型，完善最小系统板的元件清单。
-    tags:
-      - STM32F103
-      - 电路设计
-      - "0603"
-    id: legacy-2-STM32 最小系统板
   - id: 7325d7c4-785d-4048-bef6-6edcdc53e21b
     title: STM32 无人机
     description: 完成飞控 PCB 设计并下单，准备焊接测试，同时研究无线通信、电机驱动和传感器。
@@ -20,6 +13,11 @@ recent_focus:
     description: 深入学习 PCB 设计、元器件选型、PLC 编程及机器人控制，提升独立完成工程项目的能力。
     tags: []
     order: 2
+  - id: a9ab5a61-d523-4caf-91d8-7a2bb52928b1
+    title: 健身与身体管理
+    description: 逐渐掌握科学训练方法，目前对身材基本满意，接下来重点是适度增肌和改善体态。
+    tags: []
+    order: 3
 topics:
   - name: 电气控制
     category: 电气控制技术
